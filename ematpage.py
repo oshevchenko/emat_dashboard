@@ -8,6 +8,14 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 import numpy as np
 
 class EmatPage(tk.Frame) :
+    keyResample=False
+    keysettriggertime=False
+    keySPI=False
+    keyi2c=False
+    keyLevel=False
+    keyShift=False
+    keyAlt=False
+    keyControl=False
 
     def __init__(self, parent, controller, egs):
         tk.Frame.__init__(self,parent)
@@ -239,7 +247,7 @@ class EmatPage(tk.Frame) :
         # self.canvas.mpl_connect('button_press_event', self.onclick)
         # self.canvas.mpl_connect('key_press_event', self.onpress)
         # self.canvas.mpl_connect('key_release_event', self.onrelease)
-        # self.canvas.mpl_connect('pick_event', self.onpick)
+        self.canvas.mpl_connect('pick_event', self.onpick)
         # self.canvas.mpl_connect('scroll_event', self.onscroll)
         self.leg = self.ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1),
               ncol=1, borderaxespad=0, fancybox=False, shadow=False, fontsize=10)
@@ -263,6 +271,43 @@ class EmatPage(tk.Frame) :
         self.drawtext()
         # self.canvas.mpl_connect('close_event', self.handle_main_close)
         self.canvas.draw()
+
+    def toggletriggerchan(self,tp):
+        # tell it to trigger or not trigger on a given channel
+        # TODO: Add queue to send command over serial interface.
+        self.egs.trigsactive[tp] = not self.egs.trigsactive[tp]
+
+        origline,legline,channum = self.lined[tp]
+        if self.egs.trigsactive[tp]: self.leg.get_texts()[tp].set_color('#000000')
+        else: self.leg.get_texts()[tp].set_color('#aFaFaF')
+        self.canvas.draw()
+        if self.db: print(("Trigger toggled for channel",tp))
+
+
+    def pickline(self,theline):
+        # on the pick event, find the orig line corresponding to the
+        # legend proxy line, and toggle the visibility
+        origline,legline,channum = self.lined[theline]
+        if self.db: print(("picked",theline,"for channum",channum))
+        if hasattr(self,'selectedlegline'):
+            if self.selectedorigline.get_visible(): self.selectedlegline.set_linewidth(2.0)
+            else: self.selectedlegline.set_linewidth(1.0)
+        legline.set_linewidth(4.0)
+        self.selectedlegline=legline; self.selectedorigline=origline # remember them so we can set it back to normal later when we pick something else
+        if channum < self.egs.num_board*self.egs.num_chan_per_board: # it's an ADC channel (not a max10adc channel or other thing)
+            if self.db: print("picked a real ADC channel")
+            self.egs.selectedchannel=channum
+            if self.keyShift: self.toggletriggerchan(channum)
+        else:
+            if self.db: print("picked a max10 ADC channel")
+            self.selectedmax10channel=channum - num_board*num_chan_per_board
+        self.drawtext()
+
+    def onpick(self,event):
+        if event.mouseevent.button==1: #left click
+            if self.keyControl: self.togglechannel(event.artist)
+            else:self.pickline(event.artist)
+            self.canvas.draw()
 
      # Number of Haasoscope boards to read out
 
