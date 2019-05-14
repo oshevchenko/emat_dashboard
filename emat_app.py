@@ -1,14 +1,63 @@
+import HaasoscopeLib
+import Structure
+from Structure import EmatGlobalStruct
+from ematpage import EmatPage
+import imp
+imp.reload(HaasoscopeLib) # in case you changed it, and to always load some defaults
+import time, sys
+from serial import SerialException
+
+#Some options
+#HaasoscopeLib.num_board = 2 # Number of Haasoscope boards to read out (default is 1)
+#HaasoscopeLib.ram_width = 12 # width in bits of sample ram to use (e.g. 9==512 samples (default), 12(max)==4096 samples) (min is 2)
+#HaasoscopeLib.max10adcchans = [(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp # default is none, []
+import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('TkAgg')
-
 import tkinter as tk
 # from tkinter import tk
-
+import numpy as np
 from numpy import arange, sin, pi
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 # implement the default mpl key bindings
 #from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
+
+print(("matplotlib backend is",plt.get_backend()))
+
+#disable some default key mappings
+#keymap.fullscreen : f, ctrl+f       # toggling
+#keymap.home : h, r, home            # home or reset mnemonic
+#keymap.back : left, c, backspace    # forward / backward keys to enable
+#keymap.forward : right, v           #   left handed quick navigation
+#keymap.pan : p                      # pan mnemonic
+#keymap.zoom : o                     # zoom mnemonic
+#keymap.save : s                     # saving current figure
+#keymap.quit : ctrl+w, cmd+w         # close the current figure
+#keymap.grid : g                     # switching on/off a grid in current axes
+#keymap.yscale : l                   # toggle scaling of y-axes ('log'/'linear')
+#keymap.xscale : L, k                # toggle scaling of x-axes ('log'/'linear')
+#keymap.all_axes : a                 # enable all axes
+plt.rcParams['keymap.fullscreen'] = ''
+plt.rcParams['keymap.home'] = ''
+plt.rcParams['keymap.back'] = ''
+plt.rcParams['keymap.forward'] = ''
+plt.rcParams['keymap.pan'] = ''
+plt.rcParams['keymap.zoom'] = ''
+#plt.rcParams['keymap.save'] = ''
+#plt.rcParams['keymap.quit'] = ''
+plt.rcParams['keymap.grid'] = ''
+#plt.rcParams['keymap.yscale'] = ''
+plt.rcParams['keymap.xscale'] = ''
+plt.rcParams['keymap.all_axes'] = ''
+UPDATE_RATE = 10
+
+# num_board = 1 # Number of Haasoscope boards to read out
+# ram_width = 9 # width in bits of sample ram to use (e.g. 9==512 samples, 12(max)==4096 samples)
+# max10adcchans = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
+# sendincrement=0 # 0 would skip 2**0=1 byte each time, i.e. send all bytes, 10 is good for lockin mode (sends just 4 samples)
+# num_chan_per_board = 4 # number of high-speed ADC channels on a Haasoscope board
+
 
 class EmatGUI(tk.Tk):
 
@@ -59,102 +108,52 @@ class EmatGUI(tk.Tk):
         self.frames = {} #dic
 
         for F in (EmatPage,):#, Page1, Page2, Page3):
-            frame = F(container, self)
+            frame = F(container, self, egs)
             self.frames[F] = frame
             # frame.grid(row=1, column=0, columnspan=4, sticky="nsew")
-
         self.show_frame(EmatPage)
+        self.updater()
 
     def show_frame(self, cont):
 
         frame = self.frames[cont]
+        frame.on_launch_draw()
         frame.tkraise()
 
     def on_key_press(self):
         print("Not implemented")
 
+    def updater(self):
+        # print("Tick.")
+        self.after(UPDATE_RATE, self.updater)
 
 
-class EmatPage(tk.Frame) :
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self,parent)
-        self.grid(row=1, column=0, columnspan=4, sticky="nsew")
-
-        ###Matplotlib
-
-        f = Figure(figsize=(5, 5), dpi=100)
-        a = f.add_subplot(111)
-        t = arange(0.0, 3.0, 0.01)
-        s = sin(2*pi*t)
-
-        a.plot(t, s)
-
-        fr = tk.Frame(self)
-        fr.grid(row=0, column=0,  rowspan=7, sticky='nsew')
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=3)
-        self.grid_rowconfigure(2, weight=1)
-        self.grid_rowconfigure(3, weight=1)
-        self.grid_rowconfigure(4, weight=1)
-        self.grid_rowconfigure(5, weight=1)
-        self.grid_rowconfigure(6, weight=1)
-
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_columnconfigure(2, weight=1)
 
 
-        canvas = FigureCanvasTkAgg(f, master=fr)
-        canvas.draw()
-        canvas.get_tk_widget().pack()
 
-        toolbar = NavigationToolbar2Tk(canvas, fr)
-        toolbar.update()
-        canvas._tkcanvas.pack()
-
-        textbox_width = tk.Label(self, text="Width, mm:")
-        textbox_width.grid(row=0, column=1, columnspan=2, sticky='nsew')
-        # textbox_width.insert('end', "Width, mm:")
-
-
-        measured_width = tk.Label(self, text="--.-", bg='lavender', font=("Helvetica", 20))
-        measured_width.grid(row=1, column=1, columnspan=2, padx=5, pady=5, sticky='nsew')
-        # measured_width.insert('end', "10.0")
-
-        textbox_ps_on_off = tk.Label(self, text="PS:")
-        textbox_ps_on_off.grid(row=2, column=1, rowspan=2, sticky='nsew')
-        # textbox_ps_on_off.insert('end', "PS:")
-
-        button_ps_on = tk.Button(self, text="ON",
-                            command=lambda: controller.on_key_press())
-        button_ps_on.grid(row=2, column=2, padx=5, pady=5, sticky='nsew')
-
-        button_ps_off = tk.Button(self, text="OFF",
-                            command=lambda: controller.on_key_press())
-        button_ps_off.grid(row=3, column=2, padx=5, pady=5, sticky='nsew')
-
-        textbox_hv_on_off = tk.Label(self, text="HV:")
-        textbox_hv_on_off.grid(row=4, column=1, rowspan=2, sticky='nsew')
-        # textbox_hv_on_off.insert('end', "HV:")
-
-        button_hv_on = tk.Button(self, text="ON",
-                            command=lambda: controller.on_key_press())
-        button_hv_on.grid(row=4, column=2, padx=5, pady=5, sticky='nsew')
-
-        button_hv_off = tk.Button(self, text="OFF",
-                            command=lambda: controller.on_key_press())
-        button_hv_off.grid(row=5, column=2, padx=5, pady=5,  sticky='nsew')
-
-        button_pulse = tk.Button(self, text="PULSE",
-                            command=lambda: controller.on_key_press())
-        button_pulse.grid(row=6, column=1, columnspan=2, padx=5, pady=5, sticky='nsew')
-
-
-        ###Lab
-        textbox1 = tk.Entry(self)
-        textbox1.grid(row=7, column=0, columnspan=3, sticky='nsew')
-        textbox1.insert('end', "Hello Emat!")
-
+egs=EmatGlobalStruct(num_board=1, ram_width=9, max10adcchans=[], sendincrement=0, num_chan_per_board=4, clkrate=125.0)
+# egs=EmatGlobalStruct(num_board=1, ram_width=9, sendincrement=0, num_chan_per_board=4)
+# egs=EmatGlobalStruct(num_board=1, ram_width=9, sendincrement=0, num_chan_per_board=4)
+print(("egs.num_board=",egs.num_board))
+print(("egs.num_samples=",egs.num_samples))
+d = HaasoscopeLib.Haasoscope()
+d.construct()
+if not d.setup_connections(): sys.exit()
+if not d.init(): sys.exit()
+d.on_launch()
+egs.downsample=d.downsample
+egs.min_y = d.min_y
+egs.max_y = d.max_y
+egs.selectedchannel = d.selectedchannel
+egs.ydatarefchan=d.ydatarefchan
+egs.chanlevel = d.chanlevel
+egs.acdc = d.acdc
+egs.havereadswitchdata = d.havereadswitchdata
+# egs.switchpos = d.switchpos
+egs.trigsactive = d.trigsactive
+egs.Vmean = d.Vmean
+egs.Vrms = d.Vrms
+egs.domeasure = d.domeasure
+egs.dooversample = d.dooversample
 app = EmatGUI()
 app.mainloop()
