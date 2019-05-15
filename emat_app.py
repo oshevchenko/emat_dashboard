@@ -1,9 +1,9 @@
-import HaasoscopeLib
+import HaasoscopeSerialLib
 import Structure
 from Structure import EmatGlobalStruct
 from ematpage import EmatPage
 import imp
-imp.reload(HaasoscopeLib) # in case you changed it, and to always load some defaults
+imp.reload(HaasoscopeSerialLib) # in case you changed it, and to always load some defaults
 import time, sys
 from serial import SerialException
 
@@ -125,6 +125,7 @@ class EmatGUI(tk.Tk):
 
     def updater(self):
         # print("Tick.")
+        if not d.getchannels(): print("Tick.")
         self.after(UPDATE_RATE, self.updater)
 
 
@@ -136,7 +137,7 @@ egs=EmatGlobalStruct(num_board=1, ram_width=9, max10adcchans=[], sendincrement=0
 # egs=EmatGlobalStruct(num_board=1, ram_width=9, sendincrement=0, num_chan_per_board=4)
 print(("egs.num_board=",egs.num_board))
 print(("egs.num_samples=",egs.num_samples))
-d = HaasoscopeLib.Haasoscope()
+d = HaasoscopeSerialLib.Haasoscope()
 d.construct()
 if not d.setup_connections(): sys.exit()
 if not d.init(): sys.exit()
