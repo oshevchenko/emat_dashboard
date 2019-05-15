@@ -1,3 +1,4 @@
+import message_queue as mq
 # -*- coding: utf-8 -*-
 print("Loading HaasoscopeLib.py")
 
@@ -75,6 +76,8 @@ if enable_ripyl:
 class Haasoscope():
 
     def construct(self):
+        self.mq_adapter1 = mq.Adapter('serial_to_draw')
+        self.mq_publisher = mq.Publisher(self.mq_adapter1)
         self.num_samples = int(pow(2,ram_width)/pow(2,sendincrement)) # num samples per channel, max is pow(2,ram_width)/pow(2,0)=4096
         self.num_bytes = self.num_samples*num_chan_per_board #num bytes per board
         self.nsamp=pow(2,ram_width)-1 #samples for each max10 adc channel (4095 max (not sure why it's 1 less...))
@@ -1228,14 +1231,22 @@ class Haasoscope():
                 if sendincrement==0: self.lockinanalyzedata(bn)
                 else: print("you need to set sendincrement = 0 first before debugging lockin info"); return False
             if self.dolockin and self.dolockinplot: self.plot_lockin()
-            # TODO: Add drawing of the plot
+            msg = mq.Message({
+                'id': 1,
+                'ydata': self.ydata,
+                'bn': bn
+                })
+            self.mq_publisher.publish(msg)
             # self.on_running(self.ydata, bn) #update data in main window
             if self.db: print((time.time()-self.oldtime,"done with board",bn))
         if self.domaindrawing and self.domeasure:
             thetime=time.time()
             elapsedtime=thetime-self.oldtime
             if elapsedtime>1.0:
-                # TODO: Add redraw!
+                msg = mq.Message({
+                    'id': 2
+                    })
+                self.mq_publisher.publish(msg)
                 # self.drawtext() #redraws the measurements
                 self.oldtime=thetime
         if self.minfirmwareversion>=15: #v9.0 and up

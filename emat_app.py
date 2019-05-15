@@ -126,6 +126,8 @@ class EmatGUI(tk.Tk):
     def updater(self):
         # print("Tick.")
         if not d.getchannels(): print("Tick.")
+        frame = self.frames[EmatPage]
+        frame.process_queue()
         self.after(UPDATE_RATE, self.updater)
 
 
@@ -156,5 +158,15 @@ egs.Vmean = d.Vmean
 egs.Vrms = d.Vrms
 egs.domeasure = d.domeasure
 egs.dooversample = d.dooversample
+egs.dologicanalyzer = d.dologicanalyzer
+egs.xdata = d.xdata
+egs.xdata2 = d.xdata2
+egs.xdata4 = d.xdata4
+egs.yscale = d.yscale
+egs.sincresample = d.sincresample
+egs.xydata = d.xydata
+egs.domaindrawing = d.domaindrawing
+egs.gain = d.gain
+egs.supergain = d.supergain
 app = EmatGUI()
 app.mainloop()

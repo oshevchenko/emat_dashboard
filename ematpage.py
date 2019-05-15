@@ -1,3 +1,4 @@
+import message_queue as mq
 import tkinter as tk
 from matplotlib.figure import Figure
 from numpy import arange, sin, pi
@@ -19,6 +20,8 @@ class EmatPage(tk.Frame) :
 
     def __init__(self, parent, controller, egs):
         tk.Frame.__init__(self,parent)
+        self.mq_adapter1 = mq.Adapter('serial_to_draw')
+        self.mq_subscriber = mq.Subscriber(self.mq_adapter1)
         # >>>>>>>>>>>>>>>>>>>>>>>>>
         self.chtext = "Ch." #the text in the legend for each channel
         self.lines = []
@@ -308,6 +311,152 @@ class EmatPage(tk.Frame) :
             if self.keyControl: self.togglechannel(event.artist)
             else:self.pickline(event.artist)
             self.canvas.draw()
+
+    doxyplot=False
+    drawnxy=False
+    xychan=0
+    def drawxyplot(self,xdatanew,ydatanew,thechan):
+        print("drawxyplot")
+        if thechan==self.xychan: self.xydataforxaxis=ydatanew #the first channel will define the info on the x-axis
+        if thechan==(self.xychan+1):
+            if not self.drawnxy: # got to make the plot window the first time
+                # self.figxy, self.ax = plt.subplots(1,1)
+                # self.canvas.mpl_connect('close_event', self.handle_xy_close)
+                self.drawnxy=True
+                self.fig.set_size_inches(6, 6, forward=True)
+                self.xyplot, = self.ax.plot(self.xydataforxaxis,ydatanew) #scatter
+                self.canvas.set_window_title('XY display of channels '+str(self.xychan)+' and '+str(self.xychan+1))
+                self.ax.set_xlabel('Channel '+str(self.xychan)+' Volts')
+                self.ax.set_ylabel('Channel '+str(self.xychan+1)+' Volts')
+                self.ax.set_xlim(self.min_y, self.max_y)
+                self.ax.set_ylim(self.min_y, self.max_y)
+                self.ax.grid()
+            #redraw the plot
+            self.canvas.set_window_title('XY display of channels '+str(self.xychan)+' and '+str(self.xychan+1))
+            self.ax.set_xlabel('Channel '+str(self.xychan)+' Volts')
+            self.ax.set_ylabel('Channel '+str(self.xychan+1)+' Volts')
+            self.xyplot.set_data(self.xydataforxaxis, ydatanew)
+            self.canvas.draw()
+            print("drawxyplot, self.canvas.draw")
+
+    def on_running(self, theydata, board): #update data for main plot for a board
+        if board<0: #hack to tell it the max10adc channel
+            chantodraw=-board-1 #draw chan 0 first (when board=-1)
+            posi=chantodraw+self.egs.num_board*self.egs.num_chan_per_board
+            if self.db: print((time.time()-self.oldtime,"drawing line",posi))
+            #if self.db: print "ydata[0]=",theydata[0]
+            xdatanew=(self.xsampdata-self.egs.num_samples/2.)*(1000.0*pow(2,max(self.egs.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
+            ydatanew=theydata*(3.3/256)#full scale is 3.3V
+            if len(self.lines)>posi: # we may not be drawing, so check!
+                self.lines[posi].set_xdata(xdatanew)
+                self.lines[posi].set_ydata(ydatanew)
+            self.xydataslow[chantodraw][0]=xdatanew
+            self.xydataslow[chantodraw][1]=ydatanew
+        else:
+            if self.egs.dologicanalyzer and self.logicline1>=0 and hasattr(self,"ydatalogic"): #this draws logic analyzer info
+                xlogicshift=12.0/pow(2,max(self.egs.downsample,0)) # shift the logic analyzer data to the right by this number of samples (to account for the ADC delay) #downsample isn't less than 0 for xscaling
+                xdatanew = (self.egs.xdata+xlogicshift-self.egs.num_samples/2.)*(1000.0*pow(2,max(self.egs.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
+                for l in np.arange(8):
+                    a=np.array(self.ydatalogic,dtype=np.uint8)
+                    b=np.unpackbits(a)
+                    bl=b[7-l::8] # every 8th bit, starting at 7-l
+                    ydatanew = bl*.3 + (l+1)*3.2/8. # scale it and shift it
+                    self.lines[l+self.logicline1].set_xdata(xdatanew)
+                    self.lines[l+self.logicline1].set_ydata(ydatanew)
+            for l in np.arange(self.egs.num_chan_per_board): #this draws the 4 fast ADC data channels for each board
+                thechan=l+(self.egs.num_board-board-1)*self.egs.num_chan_per_board
+                #if self.db: print time.time()-self.oldtime,"drawing adc line",thechan
+                if len(theydata)<=l: print(("don't have channel",l,"on board",board)); return
+                if self.egs.dooversample[thechan]==1: # account for oversampling
+                    xdatanew = (self.egs.xdata2-self.egs.num_samples)*(1000.0*pow(2,max(self.egs.downsample,0))/self.egs.clkrate/self.xscaling/2.) #downsample isn't less than 0 for xscaling
+                    theydata2=np.concatenate([theydata[l],theydata[l+2]]) # concatenate the 2 lists
+                    ydatanew=(127-theydata2)*(self.egs.yscale/256.) # got to flip it, since it's a negative feedback op amp
+                elif self.egs.dooversample[thechan]==9: # account for over-oversampling
+                    xdatanew = (self.egs.xdata4-self.egs.num_samples*2)*(1000.0*pow(2,max(self.egs.downsample,0))/self.egs.clkrate/self.xscaling/4.) #downsample isn't less than 0 for xscaling
+                    theydata4=np.concatenate([theydata[l],theydata[l+1],theydata[l+2],theydata[l+3]]) # concatenate the 4 lists
+                    ydatanew=(127-theydata4)*(self.egs.yscale/256.) # got to flip it, since it's a negative feedback op amp
+                else:
+                    xdatanew = (self.egs.xdata-self.egs.num_samples/2.)*(1000.0*pow(2,max(self.egs.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
+                    ydatanew=(127-theydata[l])*(self.egs.yscale/256.) # got to flip it, since it's a negative feedback op amp
+                    if self.egs.ydatarefchan>=0: ydatanew -= (127-theydata[self.egs.ydatarefchan])*(self.egs.yscale/256.) # subtract the board's reference channel ydata from this channel's ydata
+                if self.egs.sincresample>0:
+                    (ydatanew,xdatanew) = resample(ydatanew, len(xdatanew)*self.egs.sincresample, t = xdatanew)
+                    xdatanew = xdatanew[1*self.egs.sincresample:len(xdatanew)*self.egs.sincresample]
+                    ydatanew = ydatanew[1*self.egs.sincresample:len(ydatanew)*self.egs.sincresample]
+                else:
+                    xdatanew = xdatanew[1:len(xdatanew)]
+                    ydatanew = ydatanew[1:len(ydatanew)]
+                if self.egs.dooversample[thechan]==1: # account for oversampling, take the middle-most section
+                    if self.egs.sincresample>0:
+                        self.egs.xydata[l][0]=xdatanew[self.egs.sincresample+self.egs.num_samples*self.egs.sincresample/2:3*self.egs.num_samples*self.egs.sincresample/2:1] # for printing out or other analysis
+                        self.egs.xydata[l][1]=ydatanew[self.egs.sincresample+self.egs.num_samples*self.egs.sincresample/2:3*self.egs.num_samples*self.egs.sincresample/2:1]
+                    else:
+                        self.egs.xydata[l][0]=xdatanew[1+self.egs.num_samples/2:3*self.egs.num_samples/2:1] # for printing out or other analysis
+                        self.egs.xydata[l][1]=ydatanew[1+self.egs.num_samples/2:3*self.egs.num_samples/2:1]
+                elif self.egs.dooversample[thechan]==9: # account for over-oversampling, take the middle-most section
+                     if self.egs.sincresample>0:
+                         self.egs.xydata[l][0]=xdatanew[self.egs.sincresample+3*self.egs.num_samples*self.egs.sincresample/2:5*self.egs.num_samples*self.egs.sincresample/2:1] # for printing out or other analysis
+                         self.egs.xydata[l][1]=ydatanew[self.egs.sincresample+3*self.egs.num_samples*self.egs.sincresample/2:5*self.egs.num_samples*self.egs.sincresample/2:1]
+                     else:
+                        self.egs.xydata[l][0]=xdatanew[1+3*self.egs.num_samples/2:5*self.egs.num_samples/2:1] # for printing out or other analysis
+                        self.egs.xydata[l][1]=ydatanew[1+3*self.egs.num_samples/2:5*self.egs.num_samples/2:1]
+                else: # the full data is stored
+                    self.egs.xydata[l][0]=xdatanew # for printing out or other analysis
+                    self.egs.xydata[l][1]=ydatanew
+                if len(self.lines)>thechan and self.egs.domaindrawing: # we may not be drawing, so check!
+                    self.lines[thechan].set_xdata(xdatanew)
+                    self.lines[thechan].set_ydata(ydatanew)
+                if self.egs.domeasure:
+                    self.egs.Vmean[thechan] = np.mean(ydatanew)
+                    self.egs.Vrms[thechan] = np.sqrt(np.mean((ydatanew-self.egs.Vmean[thechan])**2))
+                    gain=1
+                    if self.egs.gain[thechan]==0: gain*=10
+                    if self.egs.supergain[thechan]==0: gain*=100
+                    if gain>1:
+                        self.egs.Vmean[thechan]/=gain
+                        self.egs.Vrms[thechan]/=gain
+                    if self.fitline1>-1 and thechan==0: # optional risetime fit for channel 0
+                        def fit_rise(x,a,bottom,b,top): # a function for fitting to find risetime
+                            val=bottom+(x-a)*(top-bottom)/(b-a)
+                            inbottom=(x<=a)
+                            val[inbottom]=bottom
+                            intop=(x>=b)
+                            val[intop]=top
+                            return val
+                        try:
+                            x2=xdatanew[(xdatanew>-.1) & (xdatanew<.1)] # only fit in range -.1 to .1 (us)
+                            y2=ydatanew[(xdatanew>-.1) & (xdatanew<.1)]
+                            popt, pcov = scipy.optimize.curve_fit(fit_rise,x2,y2,bounds=([-.1,-4,-0.05,0],[0.05,0,.1,4])) #and note these bounds - top must be>0 and bottom<0 !
+                            self.lines[self.fitline1].set_xdata(x2)
+                            self.lines[self.fitline1].set_ydata( fit_rise(x2, *popt) )
+                            print(("risetime = ",1000*0.8*(popt[2]-popt[0]),"ns")) # from 10-90% is 0.8 on the line - don't forget to correct for x2 or x4 oversampling!
+                        except:
+                            print("fit exception!")
+                if self.doxyplot and (thechan==self.xychan or thechan==(self.xychan+1)): self.drawxyplot(xdatanew,ydatanew,thechan)# the xy plot
+                # self.drawtext()
+                # if self.recorddata and thechan==self.recorddatachan: self.dopersistplot(xdatanew,ydatanew)# the persist shaded plot
+
+                # if thechan==self.refsinchan-1 and self.reffreq==0: self.oldchanphase=-1.; self.fittosin(xdatanew, ydatanew, thechan) # first fit the previous channel, for comparison
+                # elif thechan==self.refsinchan and self.reffreq==0: self.reffreq = self.fittosin(xdatanew, ydatanew, thechan) # then fit for the ref freq and store the result
+
+                # if self.autocalibchannel>=0 and thechan==self.autocalibchannel: self.autocalibrate(thechan,ydatanew)
+
+    def process_queue(self):
+        while True:
+            message = self.mq_subscriber.consume()
+            if not message: break
+            message_content = message.get_content_body()
+            msg_id = message_content['id']
+            print ("message id:", msg_id)
+            if msg_id==1:
+                ydata = message_content['ydata']
+                bn = message_content['bn']
+                self.on_running(ydata, bn)
+            elif msg_id==2:
+                self.drawtext()
+
+
+        pass
 
      # Number of Haasoscope boards to read out
 
