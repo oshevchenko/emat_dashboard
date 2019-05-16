@@ -76,8 +76,8 @@ if enable_ripyl:
 class Haasoscope():
 
     def construct(self):
-        self.mq_adapter1 = mq.Adapter('serial_to_draw')
-        self.mq_publisher = mq.Publisher(self.mq_adapter1)
+        self.mq_adapter = mq.Adapter('main_queue')
+        self.mq_publisher = mq.Publisher(self.mq_adapter)
         self.num_samples = int(pow(2,ram_width)/pow(2,sendincrement)) # num samples per channel, max is pow(2,ram_width)/pow(2,0)=4096
         self.num_bytes = self.num_samples*num_chan_per_board #num bytes per board
         self.nsamp=pow(2,ram_width)-1 #samples for each max10 adc channel (4095 max (not sure why it's 1 less...))
@@ -90,7 +90,6 @@ class Haasoscope():
         self.serport="" # the name of the serial port on your computer, connected to Haasoscope, like /dev/ttyUSB0 or COM8, leave blank to detect automatically!
         self.usbport=[] # the names of the USB2 ports on your computer, connected to Haasoscope, leave blank to detect automatically!
         self.usbser=[]
-        self.lines = []
         self.otherlines = []
         self.texts = []
         self.xdata=np.arange(self.num_samples)
@@ -224,19 +223,15 @@ class Haasoscope():
 
         print(("123 send increment is",sendincrement))
 
-    def togglelogicanalyzer(self):
+    def setlogicanalyzer(self, dologicanalyzer):
         #tell it start/stop doing logic analyzer
+        self.dologicanalyzer = dologicanalyzer
         frame=[]
         frame.append(145)
-        self.dologicanalyzer = not self.dologicanalyzer
         if self.dologicanalyzer:
             frame.append(5)
-            if len(self.lines)>=8+self.logicline1: # check that we're drawing
-                for l in np.arange(8): self.lines[l+self.logicline1].set_visible(True)
         else:
             frame.append(4)
-            if len(self.lines)>=8+self.logicline1: # check that we're drawing
-                for l in np.arange(8): self.lines[l+self.logicline1].set_visible(False)
         self.ser.write(frame)
         print(("dologicanalyzer is now",self.dologicanalyzer))
 
@@ -1337,7 +1332,7 @@ class Haasoscope():
             if self.autorearm: self.toggleautorearm()
             if self.dohighres: self.togglehighres()
             if self.useexttrig: self.toggleuseexttrig()
-            if self.dologicanalyzer: self.togglelogicanalyzer()
+            if self.dologicanalyzer: self.setlogicanalyzer(False)
             if self.serport!="" and hasattr(self,'ser'):
                 self.shutdownadcs()
                 for p in self.usbser: p.close()

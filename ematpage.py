@@ -20,8 +20,9 @@ class EmatPage(tk.Frame) :
 
     def __init__(self, parent, controller, egs):
         tk.Frame.__init__(self,parent)
-        self.mq_adapter1 = mq.Adapter('serial_to_draw')
-        self.mq_subscriber = mq.Subscriber(self.mq_adapter1)
+        self.mq_adapter = mq.Adapter('main_queue')
+        self.mq_publisher = mq.Publisher(self.mq_adapter)
+        self.dologicanalyzer = False
         # >>>>>>>>>>>>>>>>>>>>>>>>>
         self.chtext = "Ch." #the text in the legend for each channel
         self.lines = []
@@ -353,7 +354,7 @@ class EmatPage(tk.Frame) :
             self.xydataslow[chantodraw][0]=xdatanew
             self.xydataslow[chantodraw][1]=ydatanew
         else:
-            if self.egs.dologicanalyzer and self.logicline1>=0 and hasattr(self,"ydatalogic"): #this draws logic analyzer info
+            if self.dologicanalyzer and self.logicline1>=0 and hasattr(self,"ydatalogic"): #this draws logic analyzer info
                 xlogicshift=12.0/pow(2,max(self.egs.downsample,0)) # shift the logic analyzer data to the right by this number of samples (to account for the ADC delay) #downsample isn't less than 0 for xscaling
                 xdatanew = (self.egs.xdata+xlogicshift-self.egs.num_samples/2.)*(1000.0*pow(2,max(self.egs.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
                 for l in np.arange(8):
@@ -440,23 +441,17 @@ class EmatPage(tk.Frame) :
                 # elif thechan==self.refsinchan and self.reffreq==0: self.reffreq = self.fittosin(xdatanew, ydatanew, thechan) # then fit for the ref freq and store the result
 
                 # if self.autocalibchannel>=0 and thechan==self.autocalibchannel: self.autocalibrate(thechan,ydatanew)
+    def setlogicanalyzer(self, dologicanalyzer):
+        #tell it start/stop doing logic analyzer
+        self.dologicanalyzer = dologicanalyzer
+        if self.dologicanalyzer:
+            if len(self.lines)>=8+self.logicline1: # check that we're drawing
+                for l in np.arange(8): self.lines[l+self.logicline1].set_visible(True)
+        else:
+            if len(self.lines)>=8+self.logicline1: # check that we're drawing
+                for l in np.arange(8): self.lines[l+self.logicline1].set_visible(False)
+        print(("dologicanalyzer is now",self.dologicanalyzer))
 
-    def process_queue(self):
-        while True:
-            message = self.mq_subscriber.consume()
-            if not message: break
-            message_content = message.get_content_body()
-            msg_id = message_content['id']
-            print ("message id:", msg_id)
-            if msg_id==1:
-                ydata = message_content['ydata']
-                bn = message_content['bn']
-                self.on_running(ydata, bn)
-            elif msg_id==2:
-                self.drawtext()
-
-
-        pass
 
      # Number of Haasoscope boards to read out
 

@@ -1,12 +1,13 @@
 import HaasoscopeSerialLib
+import imp
+imp.reload(HaasoscopeSerialLib) # in case you changed it, and to always load some defaults
 import Structure
 from Structure import EmatGlobalStruct
 from ematpage import EmatPage
-import imp
-imp.reload(HaasoscopeSerialLib) # in case you changed it, and to always load some defaults
 import time, sys
 from serial import SerialException
-
+import HaasoscopeStateMachine
+from HaasoscopeStateMachine import HaasoscopeStateMachine as HSM
 #Some options
 #HaasoscopeLib.num_board = 2 # Number of Haasoscope boards to read out (default is 1)
 #HaasoscopeLib.ram_width = 12 # width in bits of sample ram to use (e.g. 9==512 samples (default), 12(max)==4096 samples) (min is 2)
@@ -88,13 +89,13 @@ class EmatGUI(tk.Tk):
 
 
         button1 = tk.Button(container, text="EMAT",
-                            command= lambda: self.show_frame(EmatPage) )
+                            command= lambda: self.show_frame() )
         button2 = tk.Button(container, text="Plot2",
-                            command= lambda: self.show_frame(Page1) )
+                            command= lambda: self.show_frame() )
         button3 = tk.Button(container, text="Plot3",
-                            command= lambda: self.show_frame(Page1) )
+                            command= lambda: self.show_frame() )
         button4 = tk.Button(container, text="Plot4",
-                            command= lambda: self.show_frame(Page1) )
+                            command= lambda: self.show_frame() )
 
         button1.grid(row=0, column=0,  sticky='nsew')
         ###Button Plot2
@@ -111,23 +112,50 @@ class EmatGUI(tk.Tk):
             frame = F(container, self, egs)
             self.frames[F] = frame
             # frame.grid(row=1, column=0, columnspan=4, sticky="nsew")
-        self.show_frame(EmatPage)
+        self.frame = self.frames[EmatPage]
+        self.hsl = HaasoscopeSerialLib.Haasoscope()
+        self.hsl.construct()
+        if not self.hsl.setup_connections(): sys.exit()
+        if not self.hsl.init(): sys.exit()
+        self.hsl.on_launch()
+        egs.downsample=self.hsl.downsample
+        egs.min_y = self.hsl.min_y
+        egs.max_y = self.hsl.max_y
+        egs.selectedchannel = self.hsl.selectedchannel
+        egs.ydatarefchan=self.hsl.ydatarefchan
+        egs.chanlevel = self.hsl.chanlevel
+        egs.acdc = self.hsl.acdc
+        egs.havereadswitchdata = self.hsl.havereadswitchdata
+        # egs.switchpos = self.hsl.switchpos
+        egs.trigsactive = self.hsl.trigsactive
+        egs.Vmean = self.hsl.Vmean
+        egs.Vrms = self.hsl.Vrms
+        egs.domeasure = self.hsl.domeasure
+        egs.dooversample = self.hsl.dooversample
+        # egs.dologicanalyzer = self.hsl.dologicanalyzer
+        egs.xdata = self.hsl.xdata
+        egs.xdata2 = self.hsl.xdata2
+        egs.xdata4 = self.hsl.xdata4
+        egs.yscale = self.hsl.yscale
+        egs.sincresample = self.hsl.sincresample
+        egs.xydata = self.hsl.xydata
+        egs.domaindrawing = self.hsl.domaindrawing
+        egs.gain = self.hsl.gain
+        egs.supergain = self.hsl.supergain
+        self.frame.on_launch_draw()
+        self.hsm=HSM(self.frame, self.hsl)
         self.updater()
 
-    def show_frame(self, cont):
-
-        frame = self.frames[cont]
-        frame.on_launch_draw()
-        frame.tkraise()
+    def show_frame(self):
+        self.frame.tkraise()
 
     def on_key_press(self):
         print("Not implemented")
 
     def updater(self):
         # print("Tick.")
-        if not d.getchannels(): print("Tick.")
-        frame = self.frames[EmatPage]
-        frame.process_queue()
+        if not self.hsl.getchannels(): print("Tick.")
+        self.hsm.process_queue()
         self.after(UPDATE_RATE, self.updater)
 
 
@@ -139,34 +167,11 @@ egs=EmatGlobalStruct(num_board=1, ram_width=9, max10adcchans=[], sendincrement=0
 # egs=EmatGlobalStruct(num_board=1, ram_width=9, sendincrement=0, num_chan_per_board=4)
 print(("egs.num_board=",egs.num_board))
 print(("egs.num_samples=",egs.num_samples))
-d = HaasoscopeSerialLib.Haasoscope()
-d.construct()
-if not d.setup_connections(): sys.exit()
-if not d.init(): sys.exit()
-d.on_launch()
-egs.downsample=d.downsample
-egs.min_y = d.min_y
-egs.max_y = d.max_y
-egs.selectedchannel = d.selectedchannel
-egs.ydatarefchan=d.ydatarefchan
-egs.chanlevel = d.chanlevel
-egs.acdc = d.acdc
-egs.havereadswitchdata = d.havereadswitchdata
-# egs.switchpos = d.switchpos
-egs.trigsactive = d.trigsactive
-egs.Vmean = d.Vmean
-egs.Vrms = d.Vrms
-egs.domeasure = d.domeasure
-egs.dooversample = d.dooversample
-egs.dologicanalyzer = d.dologicanalyzer
-egs.xdata = d.xdata
-egs.xdata2 = d.xdata2
-egs.xdata4 = d.xdata4
-egs.yscale = d.yscale
-egs.sincresample = d.sincresample
-egs.xydata = d.xydata
-egs.domaindrawing = d.domaindrawing
-egs.gain = d.gain
-egs.supergain = d.supergain
+# d = HaasoscopeSerialLib.Haasoscope()
+# d.construct()
+# if not d.setup_connections(): sys.exit()
+# if not d.init(): sys.exit()
+# d.on_launch()
+
 app = EmatGUI()
 app.mainloop()
