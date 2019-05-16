@@ -100,7 +100,6 @@ class Haasoscope():
         self.xsampdata=np.arange(self.nsamp)
         self.paused=False
         self.getone=False
-        self.rolltrigger=True #roll the trigger
         self.average=False #will average every 2 samples
         self.fallingedge=True #trigger on falling edge
         self.dogrid=True #redraw the grid
@@ -1301,7 +1300,6 @@ class Haasoscope():
                 self.yscale*=1.1 # if we used 10M / 1.1M / 11k input resistors
             self.min_y = -self.yscale/2. #-4.0 #0 ADC
             self.max_y = self.yscale/2. #4.0 #256 ADC
-            self.tellrolltrig(self.rolltrigger)
             self.tellsamplesmax10adc()
             self.tellsamplessend()
             self.tellbytesskip()

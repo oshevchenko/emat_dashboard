@@ -9,6 +9,8 @@ class HaasoscopeStateMachine(object):
         self.mq_adapter = mq.Adapter('main_queue')
         self.mq_subscriber = mq.Subscriber(self.mq_adapter)
         self.dologicanalyzer = False
+        self.rolltrigger=True #roll the trigger
+        self.ser.tellrolltrig(self.rolltrigger)
 
     def togglelogicanalyzer(self):
         self.dologicanalyzer = not self.dologicanalyzer
