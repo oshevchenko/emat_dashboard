@@ -22,19 +22,33 @@ class EmatPage(tk.Frame) :
         tk.Frame.__init__(self,parent)
         self.mq_adapter = mq.Adapter('main_queue')
         self.mq_publisher = mq.Publisher(self.mq_adapter)
+        self.egs = egs
+        self.ydatarefchan=-1 #the reference channel for each board, whose ydata will be subtracted from other channels' ydata on the board
         self.dologicanalyzer = False
+        self.sincresample=0 # amount of resampling to do (sinx/x)
+        self.domaindrawing=True
+        self.domeasure=True
         # >>>>>>>>>>>>>>>>>>>>>>>>>
+        self.yscale = 7.5 # Vpp for full scale
+        # if self.minfirmwareversion>=15: #v9.0 boards
+        #     self.yscale*=1.1 # if we used 10M / 1.1M / 11k input resistors
+        self.min_y = -self.yscale/2. #-4.0 #0 ADC
+        self.max_y = self.yscale/2. #4.0 #256 ADC
+
         self.chtext = "Ch." #the text in the legend for each channel
         self.lines = []
         self.fitline1 = -1 # set to >-1 to draw a risetime fit
         self.logicline1 = -1 # to remember which is the first logic analyzer line
         self.otherlines = []
         self.texts = []
+        # self.xydataslow=np.empty([len(self.egs.max10adcchans),2,self.egs.nsamp],dtype=float)
+        # if self.domaindrawing: self.on_launch_draw()
+
         # >>>>>>>>>>>>>>>>>>>>>>>>>
         self.grid(row=1, column=0, columnspan=4, sticky="nsew")
         self.db = True
         ###Matplotlib
-        self.egs = egs
+
         self.fig = Figure(figsize=(5, 5), dpi=100)
         self.ax = self.fig.add_subplot(111)
         t = arange(0.0, 3.0, 0.01)
@@ -111,52 +125,22 @@ class EmatPage(tk.Frame) :
     firstdrawtext=True
     needtoredrawtext=False
     havereadswitchdata=False
-    def chantext(self):
-        text ="Channel: "+str(self.egs.selectedchannel)
-        if self.egs.ydatarefchan>=0: text += " - ref "+str(int(self.egs.ydatarefchan))
-        text +="\nLevel="+str(int(self.egs.chanlevel[self.egs.selectedchannel]))
-        if self.egs.acdc[self.egs.selectedchannel]:
-            text +="\nDC coupled"
-        else:
-            text +="\nAC coupled"
-        chanonboard = self.egs.selectedchannel%self.egs.num_chan_per_board
-        theboard = self.egs.num_board-1-self.egs.selectedchannel/self.egs.num_chan_per_board
-        # if self.havereadswitchdata:
-        #     if self.testBit(self.egs.switchpos[theboard],chanonboard):
-        #         text += ", 1M"
-        #     else:
-        #         text += ", 50"
-        text +="\nTriggering="+str(self.egs.trigsactive[self.egs.selectedchannel])
-        if self.egs.domeasure:
-            if abs(self.egs.Vmean[self.egs.selectedchannel])>.9: text +="\nMean={0:1.3g} V".format(self.egs.Vmean[self.egs.selectedchannel])
-            else: text +="\nMean={0:1.3g} mV".format(1000.*self.egs.Vmean[self.egs.selectedchannel])
-            if abs(self.egs.Vrms[self.egs.selectedchannel])>.9: text +="\nRMS={0:1.3g} V".format(self.egs.Vrms[self.egs.selectedchannel])
-            else: text +="\nRMS={0:1.3g} mV".format(1000.*self.egs.Vrms[self.egs.selectedchannel])
-        if chanonboard<2:
-            if self.egs.dooversample[self.egs.selectedchannel]==1: text+= "\nOversampled x2"
-            if self.egs.dooversample[self.egs.selectedchannel]==9: text+= "\nOversampled x4"
-        else:
-            if self.egs.selectedchannel>1 and self.egs.dooversample[self.egs.selectedchannel-2]: text+= "\nOff (oversamp)"
-        if len(self.egs.max10adcchans)>0:
-            text+="\n"
-            text+="\nSlow chan: "+str(self.selectedmax10channel)
-        return text
 
-    def drawtext(self):
+
+    def drawtext(self, text):
         height = 0.25 # height up from bottom to start drawing text
         xpos = 1.02 # how far over to the right to draw
         if self.firstdrawtext:
-            self.texts.append(self.ax.text(xpos, height, self.chantext(),horizontalalignment='left', verticalalignment='top',transform=self.ax.transAxes))
+            self.texts.append(self.ax.text(xpos, height, text, horizontalalignment='left', verticalalignment='top',transform=self.ax.transAxes))
             self.firstdrawtext=False
         else:
             self.texts[0].remove()
-            self.texts[0]=(self.ax.text(xpos, height, self.chantext(),horizontalalignment='left', verticalalignment='top',transform=self.ax.transAxes))
+            self.texts[0]=(self.ax.text(xpos, height, text, horizontalalignment='left', verticalalignment='top',transform=self.ax.transAxes))
             #for txt in self.ax.texts: print txt # debugging
         self.needtoredrawtext=True
         self.canvas.draw()
 
-    def setxaxis(self):
-        xscale =  self.egs.num_samples/2.0*(1000.0*pow(2,self.egs.downsample)/self.egs.clkrate)
+    def setxaxis(self, xscale):
         if xscale<1e3:
             self.ax.set_xlabel("Time (ns)")
             self.min_x = -xscale
@@ -177,7 +161,7 @@ class EmatPage(tk.Frame) :
         self.canvas.draw()
 
     def setyaxis(self):
-        self.ax.set_ylim(self.egs.min_y, self.egs.max_y)
+        self.ax.set_ylim(self.min_y, self.max_y)
         self.ax.set_ylabel("Volts") #("ADC value")
         self.ax.yaxis.set_major_locator(plt.MultipleLocator(1.0))
         self.ax.spines['top'].set_visible(False)
@@ -189,7 +173,7 @@ class EmatPage(tk.Frame) :
         #self.ax.set_autoscaley_on(True)
         self.canvas.draw()
 
-    def on_launch_draw(self):
+    def on_launch_draw(self, xscale, text):
         plt.ion() #turn on interactive mode
         self.nlines = self.egs.num_chan_per_board*self.egs.num_board+len(self.egs.max10adcchans)
         if self.db: print(("nlines=",self.nlines))
@@ -234,7 +218,7 @@ class EmatPage(tk.Frame) :
             line, = self.ax.plot([],[], '-', label="fit data", color="purple", linewidth=0.5, alpha=.5)
             self.lines.append(line)
             self.fitline1=len(self.lines)-1 # remember index where this line is
-        self.setxaxis()
+        self.setxaxis(xscale)
         self.setyaxis();
         self.ax.grid(True)
         self.vline=0
@@ -272,7 +256,7 @@ class EmatPage(tk.Frame) :
             self.lined[origline] = (origline,legline,channum)
             self.lined[channum] = (origline,legline,channum)
             channum+=1
-        self.drawtext()
+        self.drawtext(text)
         # self.canvas.mpl_connect('close_event', self.handle_main_close)
         self.canvas.draw()
 
@@ -300,12 +284,17 @@ class EmatPage(tk.Frame) :
         self.selectedlegline=legline; self.selectedorigline=origline # remember them so we can set it back to normal later when we pick something else
         if channum < self.egs.num_board*self.egs.num_chan_per_board: # it's an ADC channel (not a max10adc channel or other thing)
             if self.db: print("picked a real ADC channel")
-            self.egs.selectedchannel=channum
+            msg = mq.Message({
+                'id': 4,
+                'selectedchannel': channum
+                })
+            self.mq_publisher.publish(msg)
+            # self.egs.selectedchannel=channum
             if self.keyShift: self.toggletriggerchan(channum)
         else:
             if self.db: print("picked a max10 ADC channel")
             self.selectedmax10channel=channum - num_board*num_chan_per_board
-        self.drawtext()
+        # self.drawtext()
 
     def onpick(self,event):
         if event.mouseevent.button==1: #left click
@@ -346,7 +335,7 @@ class EmatPage(tk.Frame) :
             posi=chantodraw+self.egs.num_board*self.egs.num_chan_per_board
             if self.db: print((time.time()-self.oldtime,"drawing line",posi))
             #if self.db: print "ydata[0]=",theydata[0]
-            xdatanew=(self.xsampdata-self.egs.num_samples/2.)*(1000.0*pow(2,max(self.egs.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
+            xdatanew=(self.xsampdata-self.egs.num_samples/2.)*(1000.0*pow(2,max(self.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
             ydatanew=theydata*(3.3/256)#full scale is 3.3V
             if len(self.lines)>posi: # we may not be drawing, so check!
                 self.lines[posi].set_xdata(xdatanew)
@@ -355,8 +344,8 @@ class EmatPage(tk.Frame) :
             self.xydataslow[chantodraw][1]=ydatanew
         else:
             if self.dologicanalyzer and self.logicline1>=0 and hasattr(self,"ydatalogic"): #this draws logic analyzer info
-                xlogicshift=12.0/pow(2,max(self.egs.downsample,0)) # shift the logic analyzer data to the right by this number of samples (to account for the ADC delay) #downsample isn't less than 0 for xscaling
-                xdatanew = (self.egs.xdata+xlogicshift-self.egs.num_samples/2.)*(1000.0*pow(2,max(self.egs.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
+                xlogicshift=12.0/pow(2,max(self.downsample,0)) # shift the logic analyzer data to the right by this number of samples (to account for the ADC delay) #downsample isn't less than 0 for xscaling
+                xdatanew = (self.xdata+xlogicshift-self.egs.num_samples/2.)*(1000.0*pow(2,max(self.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
                 for l in np.arange(8):
                     a=np.array(self.ydatalogic,dtype=np.uint8)
                     b=np.unpackbits(a)
@@ -368,54 +357,54 @@ class EmatPage(tk.Frame) :
                 thechan=l+(self.egs.num_board-board-1)*self.egs.num_chan_per_board
                 #if self.db: print time.time()-self.oldtime,"drawing adc line",thechan
                 if len(theydata)<=l: print(("don't have channel",l,"on board",board)); return
-                if self.egs.dooversample[thechan]==1: # account for oversampling
-                    xdatanew = (self.egs.xdata2-self.egs.num_samples)*(1000.0*pow(2,max(self.egs.downsample,0))/self.egs.clkrate/self.xscaling/2.) #downsample isn't less than 0 for xscaling
-                    theydata2=np.concatenate([theydata[l],theydata[l+2]]) # concatenate the 2 lists
-                    ydatanew=(127-theydata2)*(self.egs.yscale/256.) # got to flip it, since it's a negative feedback op amp
-                elif self.egs.dooversample[thechan]==9: # account for over-oversampling
-                    xdatanew = (self.egs.xdata4-self.egs.num_samples*2)*(1000.0*pow(2,max(self.egs.downsample,0))/self.egs.clkrate/self.xscaling/4.) #downsample isn't less than 0 for xscaling
-                    theydata4=np.concatenate([theydata[l],theydata[l+1],theydata[l+2],theydata[l+3]]) # concatenate the 4 lists
-                    ydatanew=(127-theydata4)*(self.egs.yscale/256.) # got to flip it, since it's a negative feedback op amp
-                else:
-                    xdatanew = (self.egs.xdata-self.egs.num_samples/2.)*(1000.0*pow(2,max(self.egs.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
-                    ydatanew=(127-theydata[l])*(self.egs.yscale/256.) # got to flip it, since it's a negative feedback op amp
-                    if self.egs.ydatarefchan>=0: ydatanew -= (127-theydata[self.egs.ydatarefchan])*(self.egs.yscale/256.) # subtract the board's reference channel ydata from this channel's ydata
-                if self.egs.sincresample>0:
-                    (ydatanew,xdatanew) = resample(ydatanew, len(xdatanew)*self.egs.sincresample, t = xdatanew)
-                    xdatanew = xdatanew[1*self.egs.sincresample:len(xdatanew)*self.egs.sincresample]
-                    ydatanew = ydatanew[1*self.egs.sincresample:len(ydatanew)*self.egs.sincresample]
+                # if self.egs.dooversample[thechan]==1: # account for oversampling
+                #     xdatanew = (self.xdata2-self.egs.num_samples)*(1000.0*pow(2,max(self.downsample,0))/self.egs.clkrate/self.xscaling/2.) #downsample isn't less than 0 for xscaling
+                #     theydata2=np.concatenate([theydata[l],theydata[l+2]]) # concatenate the 2 lists
+                #     ydatanew=(127-theydata2)*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
+                # elif self.egs.dooversample[thechan]==9: # account for over-oversampling
+                #     xdatanew = (self.xdata4-self.egs.num_samples*2)*(1000.0*pow(2,max(self.downsample,0))/self.egs.clkrate/self.xscaling/4.) #downsample isn't less than 0 for xscaling
+                #     theydata4=np.concatenate([theydata[l],theydata[l+1],theydata[l+2],theydata[l+3]]) # concatenate the 4 lists
+                #     ydatanew=(127-theydata4)*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
+                # else:
+                xdatanew = (self.xdata-self.egs.num_samples/2.)*(1000.0*pow(2,max(self.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
+                ydatanew=(127-theydata[l])*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
+                if self.ydatarefchan>=0: ydatanew -= (127-theydata[self.ydatarefchan])*(self.yscale/256.) # subtract the board's reference channel ydata from this channel's ydata
+                if self.sincresample>0:
+                    (ydatanew,xdatanew) = resample(ydatanew, len(xdatanew)*self.sincresample, t = xdatanew)
+                    xdatanew = xdatanew[1*self.sincresample:len(xdatanew)*self.sincresample]
+                    ydatanew = ydatanew[1*self.sincresample:len(ydatanew)*self.sincresample]
                 else:
                     xdatanew = xdatanew[1:len(xdatanew)]
                     ydatanew = ydatanew[1:len(ydatanew)]
-                if self.egs.dooversample[thechan]==1: # account for oversampling, take the middle-most section
-                    if self.egs.sincresample>0:
-                        self.egs.xydata[l][0]=xdatanew[self.egs.sincresample+self.egs.num_samples*self.egs.sincresample/2:3*self.egs.num_samples*self.egs.sincresample/2:1] # for printing out or other analysis
-                        self.egs.xydata[l][1]=ydatanew[self.egs.sincresample+self.egs.num_samples*self.egs.sincresample/2:3*self.egs.num_samples*self.egs.sincresample/2:1]
-                    else:
-                        self.egs.xydata[l][0]=xdatanew[1+self.egs.num_samples/2:3*self.egs.num_samples/2:1] # for printing out or other analysis
-                        self.egs.xydata[l][1]=ydatanew[1+self.egs.num_samples/2:3*self.egs.num_samples/2:1]
-                elif self.egs.dooversample[thechan]==9: # account for over-oversampling, take the middle-most section
-                     if self.egs.sincresample>0:
-                         self.egs.xydata[l][0]=xdatanew[self.egs.sincresample+3*self.egs.num_samples*self.egs.sincresample/2:5*self.egs.num_samples*self.egs.sincresample/2:1] # for printing out or other analysis
-                         self.egs.xydata[l][1]=ydatanew[self.egs.sincresample+3*self.egs.num_samples*self.egs.sincresample/2:5*self.egs.num_samples*self.egs.sincresample/2:1]
-                     else:
-                        self.egs.xydata[l][0]=xdatanew[1+3*self.egs.num_samples/2:5*self.egs.num_samples/2:1] # for printing out or other analysis
-                        self.egs.xydata[l][1]=ydatanew[1+3*self.egs.num_samples/2:5*self.egs.num_samples/2:1]
-                else: # the full data is stored
-                    self.egs.xydata[l][0]=xdatanew # for printing out or other analysis
-                    self.egs.xydata[l][1]=ydatanew
-                if len(self.lines)>thechan and self.egs.domaindrawing: # we may not be drawing, so check!
+                # if self.egs.dooversample[thechan]==1: # account for oversampling, take the middle-most section
+                #     if self.sincresample>0:
+                #         self.xydata[l][0]=xdatanew[self.sincresample+self.egs.num_samples*self.sincresample/2:3*self.egs.num_samples*self.sincresample/2:1] # for printing out or other analysis
+                #         self.xydata[l][1]=ydatanew[self.sincresample+self.egs.num_samples*self.sincresample/2:3*self.egs.num_samples*self.sincresample/2:1]
+                #     else:
+                #         self.xydata[l][0]=xdatanew[1+self.egs.num_samples/2:3*self.egs.num_samples/2:1] # for printing out or other analysis
+                #         self.xydata[l][1]=ydatanew[1+self.egs.num_samples/2:3*self.egs.num_samples/2:1]
+                # elif self.egs.dooversample[thechan]==9: # account for over-oversampling, take the middle-most section
+                #      if self.sincresample>0:
+                #          self.xydata[l][0]=xdatanew[self.sincresample+3*self.egs.num_samples*self.sincresample/2:5*self.egs.num_samples*self.sincresample/2:1] # for printing out or other analysis
+                #          self.xydata[l][1]=ydatanew[self.sincresample+3*self.egs.num_samples*self.sincresample/2:5*self.egs.num_samples*self.sincresample/2:1]
+                #      else:
+                #         self.xydata[l][0]=xdatanew[1+3*self.egs.num_samples/2:5*self.egs.num_samples/2:1] # for printing out or other analysis
+                #         self.xydata[l][1]=ydatanew[1+3*self.egs.num_samples/2:5*self.egs.num_samples/2:1]
+                # else: # the full data is stored
+                self.xydata[l][0]=xdatanew # for printing out or other analysis
+                self.xydata[l][1]=ydatanew
+                if len(self.lines)>thechan and self.domaindrawing: # we may not be drawing, so check!
                     self.lines[thechan].set_xdata(xdatanew)
                     self.lines[thechan].set_ydata(ydatanew)
-                if self.egs.domeasure:
-                    self.egs.Vmean[thechan] = np.mean(ydatanew)
-                    self.egs.Vrms[thechan] = np.sqrt(np.mean((ydatanew-self.egs.Vmean[thechan])**2))
+                if self.domeasure:
+                    self.Vmean[thechan] = np.mean(ydatanew)
+                    self.Vrms[thechan] = np.sqrt(np.mean((ydatanew-self.Vmean[thechan])**2))
                     gain=1
-                    if self.egs.gain[thechan]==0: gain*=10
-                    if self.egs.supergain[thechan]==0: gain*=100
+                    if self.gain[thechan]==0: gain*=10
+                    if self.supergain[thechan]==0: gain*=100
                     if gain>1:
-                        self.egs.Vmean[thechan]/=gain
-                        self.egs.Vrms[thechan]/=gain
+                        self.Vmean[thechan]/=gain
+                        self.Vrms[thechan]/=gain
                     if self.fitline1>-1 and thechan==0: # optional risetime fit for channel 0
                         def fit_rise(x,a,bottom,b,top): # a function for fitting to find risetime
                             val=bottom+(x-a)*(top-bottom)/(b-a)
@@ -441,6 +430,7 @@ class EmatPage(tk.Frame) :
                 # elif thechan==self.refsinchan and self.reffreq==0: self.reffreq = self.fittosin(xdatanew, ydatanew, thechan) # then fit for the ref freq and store the result
 
                 # if self.autocalibchannel>=0 and thechan==self.autocalibchannel: self.autocalibrate(thechan,ydatanew)
+                self.canvas.draw()
     def setlogicanalyzer(self, dologicanalyzer):
         #tell it start/stop doing logic analyzer
         self.dologicanalyzer = dologicanalyzer
@@ -452,8 +442,19 @@ class EmatPage(tk.Frame) :
                 for l in np.arange(8): self.lines[l+self.logicline1].set_visible(False)
         print(("dologicanalyzer is now",self.dologicanalyzer))
 
-
+    def disable_otherline(self, n):
+        self.otherlines[n].set_visible(False)
      # Number of Haasoscope boards to read out
+    def set_variables(self, **argd):
+        self.__dict__.update (argd)
+        self.xdata=np.arange(self.num_samples)
+        self.xdata2=np.arange(self.num_samples*2) # for oversampling
+        self.xdata4=np.arange(self.num_samples*4) # for over-oversampling
+        self.xydata=np.empty([self.num_chan_per_board*self.num_board,2,self.num_samples-1],dtype=float)
+        self.Vrms=np.zeros(self.num_board*self.num_chan_per_board, dtype=float) # the Vrms for each channel
+        self.Vmean=np.zeros(self.num_board*self.num_chan_per_board, dtype=float) # the Vmean for each channel
+        self.gain=np.ones(self.num_board*self.num_chan_per_board, dtype=int) # 1 is low gain, 0 is high gain (x10)
+        self.supergain=np.ones(self.num_board*self.num_chan_per_board, dtype=int) # 1 is normal gain, 0 is super gain (x100)
 
     #[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
      # 0 would skip 2**0=1 byte each time, i.e. send all bytes, 10 is good for lockin mode (sends just 4 samples)

@@ -116,33 +116,32 @@ class EmatGUI(tk.Tk):
         self.hsl = HaasoscopeSerialLib.Haasoscope()
         self.hsl.construct()
         if not self.hsl.setup_connections(): sys.exit()
-        if not self.hsl.init(): sys.exit()
-        self.hsl.on_launch()
-        egs.downsample=self.hsl.downsample
-        egs.min_y = self.hsl.min_y
-        egs.max_y = self.hsl.max_y
+        if not self.hsl.init(1): sys.exit()
+        # self.hsl.on_launch()
+        # egs.downsample=self.hsl.downsample
+        # egs.min_y = self.hsl.min_y
+        # egs.max_y = self.hsl.max_y
         egs.selectedchannel = self.hsl.selectedchannel
-        egs.ydatarefchan=self.hsl.ydatarefchan
-        egs.chanlevel = self.hsl.chanlevel
-        egs.acdc = self.hsl.acdc
+        # egs.ydatarefchan=self.hsl.ydatarefchan
+        # egs.chanlevel = self.hsl.chanlevel
+        # egs.acdc = self.hsl.acdc
         egs.havereadswitchdata = self.hsl.havereadswitchdata
         # egs.switchpos = self.hsl.switchpos
-        egs.trigsactive = self.hsl.trigsactive
-        egs.Vmean = self.hsl.Vmean
-        egs.Vrms = self.hsl.Vrms
-        egs.domeasure = self.hsl.domeasure
-        egs.dooversample = self.hsl.dooversample
+        # egs.trigsactive = self.hsl.trigsactive
+        # egs.Vmean = self.hsl.Vmean
+        # egs.Vrms = self.hsl.Vrms
+        # egs.domeasure = self.hsl.domeasure
+        # egs.dooversample = self.hsl.dooversample
         # egs.dologicanalyzer = self.hsl.dologicanalyzer
-        egs.xdata = self.hsl.xdata
-        egs.xdata2 = self.hsl.xdata2
-        egs.xdata4 = self.hsl.xdata4
-        egs.yscale = self.hsl.yscale
-        egs.sincresample = self.hsl.sincresample
-        egs.xydata = self.hsl.xydata
-        egs.domaindrawing = self.hsl.domaindrawing
-        egs.gain = self.hsl.gain
-        egs.supergain = self.hsl.supergain
-        self.frame.on_launch_draw()
+        # egs.xdata = self.hsl.xdata
+        # egs.xdata2 = self.hsl.xdata2
+        # egs.xdata4 = self.hsl.xdata4
+        # egs.yscale = self.hsl.yscale
+        # egs.sincresample = self.hsl.sincresample
+        # egs.xydata = self.hsl.xydata
+        # egs.domaindrawing = self.hsl.domaindrawing
+        # egs.gain = self.hsl.gain
+        # egs.supergain = self.hsl.supergain
         self.hsm=HSM(self.frame, self.hsl)
         self.updater()
 
@@ -154,7 +153,7 @@ class EmatGUI(tk.Tk):
 
     def updater(self):
         # print("Tick.")
-        if not self.hsl.getchannels(): print("Tick.")
+        if not self.hsl.getchannels(1): print("Tick.")
         self.hsm.process_queue()
         self.after(UPDATE_RATE, self.updater)
 
