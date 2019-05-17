@@ -260,16 +260,12 @@ class EmatPage(tk.Frame) :
         # self.canvas.mpl_connect('close_event', self.handle_main_close)
         self.canvas.draw()
 
-    def toggletriggerchan(self,tp):
+    def settriggerchan(self, tp, trigactive):
         # tell it to trigger or not trigger on a given channel
-        # TODO: Add queue to send command over serial interface.
-        self.egs.trigsactive[tp] = not self.egs.trigsactive[tp]
-
         origline,legline,channum = self.lined[tp]
-        if self.egs.trigsactive[tp]: self.leg.get_texts()[tp].set_color('#000000')
+        if trigactive: self.leg.get_texts()[tp].set_color('#000000')
         else: self.leg.get_texts()[tp].set_color('#aFaFaF')
         self.canvas.draw()
-        if self.db: print(("Trigger toggled for channel",tp))
 
 
     def pickline(self,theline):
@@ -284,13 +280,12 @@ class EmatPage(tk.Frame) :
         self.selectedlegline=legline; self.selectedorigline=origline # remember them so we can set it back to normal later when we pick something else
         if channum < self.egs.num_board*self.egs.num_chan_per_board: # it's an ADC channel (not a max10adc channel or other thing)
             if self.db: print("picked a real ADC channel")
-            msg = mq.Message({
-                'id': 4,
-                'selectedchannel': channum
-                })
+            msg = mq.Message({'id': 4, 'selectedchannel': channum})
             self.mq_publisher.publish(msg)
-            # self.egs.selectedchannel=channum
-            if self.keyShift: self.toggletriggerchan(channum)
+            if self.keyShift:
+                msg = mq.Message({'id': 5, 'triggerchannel': channum})
+                self.mq_publisher.publish(msg)
+
         else:
             if self.db: print("picked a max10 ADC channel")
             self.selectedmax10channel=channum - num_board*num_chan_per_board

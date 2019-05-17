@@ -420,20 +420,12 @@ class Haasoscope():
             self.useexttrig = not self.useexttrig
             print(("useexttrig is",self.useexttrig))
 
-    def toggletriggerchan(self,tp):
+    def settriggerchan(self,firmchan):
         #tell it to trigger or not trigger on a given channel
         frame=[]
         frame.append(130)
-        firmchan=self.getfirmchan(tp)
         frame.append(firmchan)
         self.ser.write(frame)
-        self.trigsactive[tp] = not self.trigsactive[tp]
-        if len(plt.get_fignums())>0:
-            origline,legline,channum = self.lined[tp]
-            if self.trigsactive[tp]: self.leg.get_texts()[tp].set_color('#000000')
-            else: self.leg.get_texts()[tp].set_color('#aFaFaF')
-            self.figure.canvas.draw()
-        if self.db: print(("Trigger toggled for channel",tp))
 
     def toggleautorearm(self):
         frame=[]
@@ -539,8 +531,9 @@ class Haasoscope():
         for chan in np.arange(num_board*self.num_chan_per_board):
             if self.gain[chan]==0:
                 self.tellswitchgain(chan) # set all gains back to low gain
-            if  self.trigsactive[chan]==0:
-                self.toggletriggerchan(chan) # set all trigger channels back to active
+            # if  self.trigsactive[chan]==0:
+                # TODO fix this
+                # self.settriggerchan(chan) # set all trigger channels back to active
             if self.dooversample[chan]:
                 self.oversamp(chan) # set all channels back to no oversampling
 

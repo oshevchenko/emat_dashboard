@@ -264,6 +264,12 @@ class HaasoscopeStateMachine(object):
         self.gui.setlogicanalyzer(self.dologicanalyzer)
         print(("dologicanalyzer is now",self.dologicanalyzer))
 
+    def getfirmchan(self,chan):
+        theboard = num_board-1-int(chan/num_chan_per_board)
+        chanonboard = chan%num_chan_per_board
+        firmchan=theboard*num_chan_per_board+chanonboard
+        return firmchan # the channels are numbered differently in the firmware
+
     def process_queue(self):
         while True:
             message = self.mq_subscriber.consume()
@@ -283,4 +289,13 @@ class HaasoscopeStateMachine(object):
                 self.selectedchannel = message_content['selectedchannel']
                 self.gui.drawtext(self.chantext())
                 print(("New selectedchannel:",self.selectedchannel))
+            elif msg_id==5:
+                channel = message_content['triggerchannel']
+                self.trigsactive[channel] = not self.trigsactive[channel]
+                self.gui.settriggerchan(self,channel, self.trigsactive[channel])
+                self.gui.drawtext(self.chantext())
+                firmchan=self.getfirmchan(channel)
+                self.ser.settriggerchan(firmchan)
+                if self.db: print(("Trigger toggled for channel",channel))
+
         pass
