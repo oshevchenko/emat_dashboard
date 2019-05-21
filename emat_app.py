@@ -53,12 +53,6 @@ plt.rcParams['keymap.xscale'] = ''
 plt.rcParams['keymap.all_axes'] = ''
 UPDATE_RATE = 10
 
-
-# max10adcchans = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
-# sendincrement=0 # 0 would skip 2**0=1 byte each time, i.e. send all bytes, 10 is good for lockin mode (sends just 4 samples)
-
-
-
 class EmatGUI(tk.Tk):
 
     def __init__(self, *args, **kwargs):  #kwargs Dictionary, args - arguments
@@ -160,7 +154,7 @@ class EmatGUI(tk.Tk):
 
 
 
-egs=EmatGlobalStruct(max10adcchans=[], sendincrement=0, clkrate=125.0)
+egs=EmatGlobalStruct(max10adcchans=[], clkrate=125.0)
 
 # d = HaasoscopeSerialLib.Haasoscope()
 # d.construct()

@@ -5,8 +5,8 @@ import time, json, os
 from const import *
 # You might adjust these, just override them before calling construct()
 max10adcchans = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
-sendincrement=0 # 0 would skip 2**0=1 byte each time, i.e. send all bytes, 10 is good for lockin mode (sends just 4 samples)
-HAAS_NUM_CHAN_PER_BOARD = 4 # number of high-speed ADC channels on a Haasoscope board
+
+
 
 class HaasoscopeStateMachine(object):
     """docstring for HaasoscopeStateMachine"""
@@ -28,9 +28,9 @@ class HaasoscopeStateMachine(object):
         self.dologicanalyzer = False
         self.rolltrigger=True #roll the trigger
         self.ser.tellrolltrig(self.rolltrigger)
-        self.ser.tellsamplessend(HAAS_NUM_SAMPLES*pow(2,sendincrement))
+        self.ser.tellsamplessend(HAAS_NUM_SAMPLES*pow(2,HAAS_SENDINCREMENT))
         self.ser.tellsamplesmax10adc(self.nsamp)
-        self.ser.tellbytesskip(sendincrement)
+        self.ser.tellbytesskip(HAAS_SENDINCREMENT)
         self.ser.set_variables(num_bytes=self.num_bytes,
             max10adcchans=max10adcchans)
         self.downsample=2 #adc speed reduction, log 2... so 0 (none), 1(factor 2), 2(factor 4), etc.

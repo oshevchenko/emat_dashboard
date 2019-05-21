@@ -160,7 +160,7 @@ class Haasoscope():
         #tell it the number of samples to send
         frame=[]
         frame.append(122)
-        # Either 0 for all, or num_samples*pow(2,sendincrement)
+        # Either 0 for all, or num_samples*pow(2,HAAS_SENDINCREMENT)
         frame.extend(bytearray.fromhex('{:04x}'.format(num_samples_to_send)))
         self.ser.write(frame)
 
@@ -185,14 +185,14 @@ class Haasoscope():
 
         print(("serialdelaytimerwait is",256*frame[1]+1*frame[2]))
 
-    def tellbytesskip(self, sendincrement):
+    def tellbytesskip(self, HAAS_SENDINCREMENT):
         #tell it the number of bytes to skip after each send, log2
         frame=[]
         frame.append(123)
-        frame.append(sendincrement)
+        frame.append(HAAS_SENDINCREMENT)
         self.ser.write(frame)
 
-        print(("123 send increment is",sendincrement))
+        print(("123 send increment is",HAAS_SENDINCREMENT))
 
     def setlogicanalyzer(self, dologicanalyzer):
         #tell it start/stop doing logic analyzer
@@ -1047,8 +1047,8 @@ class Haasoscope():
             if self.dogetotherdata: self.getotherdata(bn) # get other data, like TDC info, or other bytes
             if self.dofft: self.plot_fft(bn) #do the FFT plot
             if self.dolockin and self.debuglockin:
-                if sendincrement==0: self.lockinanalyzedata(bn)
-                else: print("you need to set sendincrement = 0 first before debugging lockin info"); return False
+                if HAAS_SENDINCREMENT==0: self.lockinanalyzedata(bn)
+                else: print("you need to set HAAS_SENDINCREMENT = 0 first before debugging lockin info"); return False
             if self.dolockin and self.dolockinplot: self.plot_lockin()
             msg = mq.Message({
                 'id': 1,
