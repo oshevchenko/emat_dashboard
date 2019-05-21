@@ -1,0 +1,523 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"ge",
+				"getIDs"
+			],
+			[
+				"time",
+				"timeout"
+			],
+			[
+				"T",
+				"True"
+			],
+			[
+				"pRx",
+				"pRxThreadCommonData"
+			],
+			[
+				"op",
+				"optee_shmem"
+			],
+			[
+				"shm_r",
+				"shm_reserved_x1"
+			],
+			[
+				"shm_reserved_1x",
+				"shm_reserved_1x"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"Install",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/oleksandr/workspace/Haasoscope/software/HaasoscopeLib.py",
+		"/home/oleksandr/workspace/Haasoscope/software/serial_read.py",
+		"/home/oleksandr/workspace/emat/software/dashboard/HaasoscopeLib.py",
+		"/home/oleksandr/workspace/Haasoscope/software/HaasoscopeDraw.py",
+		"/home/oleksandr/workspace/Haasoscope/software/HaasoscopeDraw.py_3",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/integration/work/integration/guest1.dts",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/integration/config/android1-guest-append.dts",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/android1-kernel/r8a7795-salvator-xs-overlay.dts",
+		"/home/oleksandr/.config/sublime-text-3/Packages/User/Default (Linux).sublime-keymap",
+		"/home/oleksandr/.config/sublime-text-3/Packages/SublimeCscope/Default (Linux).sublime-keymap",
+		"/home/oleksandr/.config/sublime-text-3/Packages/User/SublimeCscope.sublime-settings",
+		"/home/oleksandr/workspace/dual-android-release/bsp/linux/kernel/4.14/linux-4.14-rcargen3/sound/drivers/dummy.c",
+		"/home/oleksandr/workspace/dual-android-release/bsp/linux/yocto/renesas-rcar-gen3-linux-sdk-core-image-weston-qt5-testing/sysroots/aarch64-poky-linux/usr/share/alsa/alsa.conf",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/integration/staging/android2-vendor/etc/media_codecs.xml",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/integration/staging/android1-vendor/etc/media_codecs.xml",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/integration/staging/android2-vendor/etc/media_profiles_V1_0.xml",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/android2-vendor/overlay/etc/init/android.hardware.vnet0.setup@1.0-service.rc",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/android1-vendor/overlay/etc/init/android.hardware.vnet0.setup@1.0-service.rc",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/linux1-initrd/skeleton/init",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/android1-vendor/overlay/etc/init/android.hardware.kernel.modules@1.0-service.rc",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/linux1-kernel/r8a7795-salvator-xs-overlay.dts",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/integration/config/linux1-guest-append.dts",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/integration/config/android2-guest-append.dts",
+		"/home/oleksandr/workspace/dual-android-release/coqoshv/config/plat-capabilities/r8a7795-salvator-xs-plat-model.xml",
+		"/home/oleksandr/workspace/dual-android-release/coqoshv/config/plat-capabilities/r8a7795-salvator-xs-4x2g-plat-model.xml",
+		"/home/oleksandr/workspace/dual-android-release/coqoshv/config/plat-capabilities/r8a7795-salvator-x-soc-model.xml",
+		"/home/oleksandr/workspace/dual-android-release/env/platform-rcargen3/coky_defconfig.bbappend",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/integration/config/coqoshv-guest-config-r8a7795-salvator-xs.xml",
+		"/home/oleksandr/workspace/dual-android-release/projects/prj-rcargen3-hwvirt-linux-dual-android/android2-kernel/r8a7795-salvator-xs-overlay.dts",
+		"/home/oleksandr/workspace/dual-android-release/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/build/linux/common/opsy.mk",
+		"/home/oleksandr/workspace/dual-android-release/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/system/common/vmm_type_coqoshv.c",
+		"/home/oleksandr/workspace/dual-android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/coqos-virtio-gpu1.service",
+		"/home/oleksandr/workspace/dual-android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-initrd/skeleton/etc/xdg/weston/weston.ini",
+		"/home/oleksandr/workspace/dual-android/env/base/coqos-sdk-full-whitelist.txt",
+		"/home/oleksandr/workspace/dual-android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/coqos-virtio-input.service",
+		"/home/oleksandr/workspace/dual-android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/coqos-virtio-input.rules",
+		"/home/oleksandr/workspace/dual-android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/coqos-virtio-blk1.service",
+		"/home/oleksandr/workspace/periscope_logs/periscope.log.30",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/server/common/pvrsrv.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/server/include/pvrsrv.h",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/linux/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/server/env/linux/pvr_debug.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/linux/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/include/pvr_debug.h",
+		"/home/oleksandr/workspace/coqos_double_android/.repo/manifests/default.xml",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/server/env/linux/pvr_debug.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/server/include/osfunc.h",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/build/linux/config/core.mk",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3/include/sound/soc.h",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3/sound/soc/soc-jack.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3/drivers/leds/leds-blinkm.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/include/pvr_debug.h",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/include/img_defs.h",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/kernel/drivers/staging/imgtec/pvr_drm.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/server/env/linux/module_common.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/server/devices/rgx/rgxsrvinit.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/server/devices/rgx/rgxinit.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/system/common/vz_physheap_common.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/server/devices/rgx/rgxfwutils.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/system/common/vmm_pvz_server.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3/sound/soc/sti/uniperif_player.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/linux/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/system/common/vmm_type_coqoshv.c",
+		"/home/oleksandr/workspace/coqos_double_android/ixcf/vchar/linux/vchar.c",
+		"/home/oleksandr/workspace/coqos_double_android/build.sh",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/rcargen3-android2-modules/imgtec-gx6650-linux-modules/build/target_aarch64/kbuild/services/system/common/vmm_type_coqoshv.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3/drivers/infiniband/hw/hfi1/trace_dbg.h",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/rcargen3-android2-modules/imgtec-gx6650-linux-modules/build/target_aarch64/kbuild/services/server/env/linux/pvr_debug.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/linux/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/build/linux/config/core.mk",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/system/common/vz_vmm_pvz.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/system/include/vmm_impl.h",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/integration/config/android1-guest-append.dts",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/integration/config/android2-guest-append.dts",
+		"/home/oleksandr/.config/sublime-text-3/Packages/Cscope/CscopeSublime.sublime-settings",
+		"/home/oleksandr/.config/sublime-text-3/Packages/User/CscopeSublime.sublime-settings",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-dual-linux/rcargen3-linux1-modules/ixcf-vchar-linux-modules/build/vchar/common/vchar.c",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-dual-linux/rcargen3-linux1-modules/ixcf-vchar-linux-modules/build/vchar/linux/vchar.c",
+		"/home/oleksandr/workspace/coqos_double_android/ixcf/vchar/include/linux/vchar.h",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3/drivers/gpu/drm/i915/i915_drv.h",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/linux/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/server/common/pvrsrv.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/system/common/vmm_type_coqoshv.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/system/include/vmm_type_coqoshv.h",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/linux/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/server/env/linux/allocmem.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/include/shared/allocmem.h",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/rcargen3-linux1-modules/imgtec-gx6650-linux-modules/build/target_aarch64/kbuild/services/system/common/vmm_type_coqoshv.c",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/coqos-virtio-blk1.service",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/linux/kernel/4.14/linux-4.14-rcargen3/arch/arm64/boot/dts/renesas/r8a7795.dtsi",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/integration/Makefile",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/Makefile.prj",
+		"/home/oleksandr/Documents/android2_boot.log",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/android1-kernel/r8a7795-salvator-xs-overlay.dts",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/android2-kernel/r8a7795-salvator-xs-overlay.dts",
+		"/home/oleksandr/Documents/Android2_boot.log",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/coqos-virtio-blk0.service",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/android2-vendor/overlay/etc/fstab.salvator",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-initrd/skeleton/init",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/Coqos.mk",
+		"/home/oleksandr/Documents/Android2_crash.log",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/coqos-virtio-gpu0.service",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/coqos-virtio-gpu1.service",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/linux/usr-apps/coqos-virtio-gpu-aarch64-linux-gnu-prebuilt/bin/coqos-virtio-gpu",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-android/android-vendor/overlay/etc/fstab.salvator",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/r8a7795-salvator-xs-overlay.dts",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/android1-vendor/overlay/etc/fstab.salvator",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-dual-linux/linux2-kernel/defconfig",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/android2-kernel/defconfig",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/integration/work/integration/guest1.ov.dts",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/linux/kernel/4.14/linux-4.14-rcargen3/drivers/gpu/drm/drm_modes.c",
+		"/home/oleksandr/workspace/coqos_double_android/bsp/linux/kernel/4.14/linux-4.14-rcargen3/drivers/gpu/drm/panel/panel-lvds.c",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/linux/r8a7795-salvator-xs-overlay.dtb.dts.tmp",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/android2-kernel/r8a7795-salvator-xs-overlay2.dts",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/android2-kernel/coqoshv-add-virtio-android-fstab.dtsi",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/coqoshv-disable-vga-and-lvds-video-outputs.dtsi",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/android1-kernel/coqoshv-add-virtio-android-fstab.dtsi",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android/android-kernel/coqoshv-add-virtio-android-fstab.dtsi",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/integration/work/integration/guest1.dts",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android/linux1-kernel/r8a7795-salvator-xs-overlay.dts",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/coqoshv.rules",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/coqos-virtio-gpu.service",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/coqoshv.conf",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android/integration/config/coqoshv-guest-config-r8a7795-salvator-xs.xml",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android/integration/config/android-guest-append.dts",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/integration/config/linux1-guest-append.dts",
+		"/home/oleksandr/workspace/coqos_double_android/coqoshv/config/plat-capabilities/r8a7795-salvator-xs-4x2g-plat-model.xml",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-apps/virtio-app/coqos-virtio-blk.service",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/defconfig",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/android2-kernel/Makefile",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/integration/config/coqoshv-guest-config-r8a7795-salvator-xs.xml",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/coqoshv-add-virtual-uart-and-remove-physical-scif-access.dtsi",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/coqoshv-remove-cpu-idle-states-property-from-all-cpus.dtsi",
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/coqoshv-remove-usb2-access.dtsi"
+	],
+	"find":
+	{
+		"height": 39.0
+	},
+	"find_in_files":
+	{
+		"height": 101.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"update",
+			"update_idletasks",
+			"on_running",
+			"xsampdata",
+			"ydata",
+			"getchannels",
+			"plt",
+			"on_launch_draw",
+			"plt",
+			"setup_connections",
+			"init",
+			"self.figure",
+			"dofast",
+			"plt",
+			"getid",
+			"\t",
+			"time.sleep(waitlittle)",
+			"frame=bytearray()",
+			"#self.ser.flush()",
+			"self.ser.flush()",
+			"self.ser",
+			"Serial",
+			"data",
+			"self.ser.flush()",
+			"\n    ",
+			"usbser",
+			"adjustedbrate",
+			"serialrate",
+			"self.ser=",
+			"init_test",
+			"getswitchdata",
+			"getswitchdata``",
+			"getswitchdata",
+			"encode",
+			"max10adcchans",
+			"getmax10adc",
+			"encode",
+			"delay co",
+			"dogetotherdata",
+			"getotherdata",
+			"encode",
+			"telltickstowait",
+			"encode",
+			"getfirmchan",
+			"writefirmchan",
+			"chan/num_chan_per_board",
+			"keyControl",
+			"togglechannel",
+			"toggletriggerchan",
+			"writefirmchan",
+			"encode"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 27.0
+	},
+	"input":
+	{
+		"height": 36.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "emat_dashboard.sublime-project",
+	"replace":
+	{
+		"height": 50.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"weston.ini",
+				"projects/prj-rcargen3-hwvirt-linux-dual-android/linux1-initrd/skeleton/etc/xdg/weston/weston.ini"
+			],
+			[
+				"opsy.mk",
+				"bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/build/linux/common/opsy.mk"
+			],
+			[
+				"dummy.c",
+				"bsp/android/kernel/4.14/linux-4.14-rcargen3/sound/drivers/dummy.c"
+			],
+			[
+				"alsa.conf",
+				"bsp/linux/yocto/renesas-rcar-gen3-linux-sdk-core-image-weston-qt5-testing/sysroots/aarch64-poky-linux/usr/share/alsa/alsa.conf"
+			],
+			[
+				"audio_po",
+				"bsp/android2/platform/renesas-rcar-gen3-android-bsp-images-rcar-h3-salvator-userdebug-prebuilt/vendor/etc/audio_policy.conf"
+			],
+			[
+				"media_profiles.xml",
+				"projects/prj-rcargen3-hwvirt-linux-dual-android/integration/staging/android2-vendor/etc/media_profiles_V1_0.xml"
+			],
+			[
+				"media_codecs.",
+				"projects/prj-rcargen3-hwvirt-linux-dual-android/integration/staging/android1-vendor/etc/media_codecs.xml"
+			],
+			[
+				"media_codecs",
+				"bsp/android2/platform/renesas-rcar-gen3-android-bsp-images-rcar-h3-salvator-userdebug-prebuilt/vendor/etc/media_codecs.xml"
+			],
+			[
+				"init.salvator.rc",
+				"projects/prj-rcargen3-hwvirt-linux-dual-android/integration/staging/android1-vendor/etc/init/hw/init.salvator.usb.rc"
+			],
+			[
+				"coqos-virtio-inpu",
+				"projects/prj-rcargen3-hwvirt-linux-dual-android/linux1-apps/virtio-app/coqos-virtio-input2.service"
+			],
+			[
+				"media_codecs.xml",
+				"bsp/android2/platform/renesas-rcar-gen3-android-bsp-images-rcar-h3-salvator-userdebug-prebuilt/vendor/etc/media_codecs.xml"
+			],
+			[
+				"vmm_type",
+				"bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/system/common/vmm_type_coqoshv.c"
+			],
+			[
+				"weston.",
+				"projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-initrd/skeleton/etc/xdg/weston/weston.ini"
+			],
+			[
+				"defaul",
+				".repo/manifests/default.xml"
+			],
+			[
+				"renesas-rcar-gen3-android2-bsp-images-rcar-h3-salvator-userdebug_9.0.0-ppr1.190201.011-5.0.0.8-opsy-SNAPSHOT.bb",
+				"tools/coky/meta-e0747/recipes-bsp/android-bsp-images/renesas-rcar-gen3-android2-bsp-images-rcar-h3-salvator-userdebug_9.0.0-ppr1.190201.011-5.0.0.8-opsy-SNAPSHOT.bb"
+			],
+			[
+				"init",
+				"linux1-initrd/skeleton/init"
+			],
+			[
+				"vmm_pvz_client.c",
+				"bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km/services/system/common/vmm_pvz_client.c"
+			],
+			[
+				"build.sh",
+				"build.sh"
+			],
+			[
+				"pvr_debug.c",
+				"projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/rcargen3-android2-modules/imgtec-gx6650-linux-modules/build/target_aarch64/kbuild/services/server/env/linux/pvr_debug.c"
+			],
+			[
+				"vmm_type_coqoshv.c",
+				"projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/rcargen3-android2-modules/imgtec-gx6650-linux-modules/build/target_aarch64/kbuild/services/system/common/vmm_type_coqoshv.c"
+			],
+			[
+				"fstab",
+				"projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/android2-vendor/overlay/etc/fstab.salvator"
+			],
+			[
+				"def",
+				"projects/prj-rcargen3-hwvirt-dual-linux/linux2-kernel/defconfig"
+			],
+			[
+				"coqoshv-disable-vga-and-lvds-video-outputs.dtsi",
+				"projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/coqoshv-disable-vga-and-lvds-video-outputs.dtsi"
+			],
+			[
+				"makefile.p",
+				"projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/Makefile.prj"
+			],
+			[
+				"fstab.",
+				"projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/android1-vendor/overlay/etc/fstab.salvator"
+			],
+			[
+				"Makefile.p",
+				"projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/Makefile.prj"
+			],
+			[
+				"panel-lv",
+				"bsp/linux/kernel/4.14/linux-4.14-rcargen3/drivers/gpu/drm/panel/panel-lvds.c"
+			],
+			[
+				"drm_modes.c",
+				"bsp/linux/kernel/4.14/linux-4.14-rcargen3/drivers/gpu/drm/drm_modes.c"
+			],
+			[
+				"plat-ca",
+				".repo/projects/coqoshv/config.git/refs/remotes/opsy/opsy/feature/COQOS-2857-add-salvator-xs-plat-capabilities"
+			],
+			[
+				"native_linux.mk",
+				"tools/oskar/core/rules/native_linux.mk"
+			],
+			[
+				"coqoshv-guest-config-r8a7795-salvator-xs.xml",
+				"projects/prj-rcargen3-hwvirt-linux-dual-android/integration/config/coqoshv-guest-config-r8a7795-salvator-xs.xml"
+			],
+			[
+				"r8a7795.dtsi",
+				"bsp/linux/kernel/4.14/linux-4.14-rcargen3/arch/arm64/boot/dts/renesas/r8a7795.dtsi"
+			],
+			[
+				"linux1",
+				"projects/prj-rcargen3-hwvirt-linux-dual-android/integration/config/linux1-guest-append.dts"
+			],
+			[
+				"coqos-vir",
+				"projects/prj-rcargen3-hwvirt-linux-dual-android/linux1-apps/virtio-app/coqos-virtio-blk.service"
+			],
+			[
+				"rogue_km",
+				".repo/projects/bsp/android/kernel/4.14/linux-4.14-rcargen3-modules/rogue_km.git/refs/remotes/opsy/opsy/bugfix/EDCL-246-rogue_km-reinitialization-of-guest"
+			],
+			[
+				"",
+				"projects/prj-rcargen3-hwvirt-linux-dual-android/integration/config/android2-guest-append.dts"
+			],
+			[
+				"android.dtb",
+				"projects/prj-rcargen3-hwvirt-linux-dual-android/integration/staging/android1.dtb"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 325.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
