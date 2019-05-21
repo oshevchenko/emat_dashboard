@@ -3,10 +3,6 @@ import numpy as np
 from struct import unpack
 import time, json, os
 from const import *
-# You might adjust these, just override them before calling construct()
-HAAS_MAX10ADCCHANS = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
-
-
 
 class HaasoscopeStateMachine(object):
     """docstring for HaasoscopeStateMachine"""
@@ -20,8 +16,6 @@ class HaasoscopeStateMachine(object):
 
         self.nsamp=pow(2,HAAS_RAM_WIDTH)-1 #samples for each max10 adc channel (4095 max (not sure why it's 1 less...))
         print(("num main ADC and max10adc bytes for all boards = ",HAAS_NUM_BYTES*HAAS_NUM_BOARD,"and",len(HAAS_MAX10ADCCHANS)*self.nsamp))
-        self.clkrate=125.0 # ADC sample rate in MHz
-
         self.Vrms=np.zeros(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=float) # the Vrms for each channel
         self.Vmean=np.zeros(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=float) # the Vmean for each channel
         self.dologicanalyzer = False
@@ -37,7 +31,7 @@ class HaasoscopeStateMachine(object):
         self.telldownsample(self.downsample)
         self.uniqueID=[]
         self.getIDs()
-        xscale =  HAAS_NUM_SAMPLES/2.0*(1000.0*pow(2,self.downsample)/self.clkrate)
+        xscale =  HAAS_NUM_SAMPLES/2.0*(1000.0*pow(2,self.downsample)/HAAS_CLKRATE)
         self.lowdaclevel=np.ones(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD)*2050 # these hold the user set levels for each gain combination
         self.highdaclevel=np.ones(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD)*2800
         self.lowdaclevelsuper=np.ones(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD)*120
@@ -239,7 +233,7 @@ class HaasoscopeStateMachine(object):
             if self.db: print(("downsample is",self.downsample))
             if self.dolockin:
                 twoforoversampling=1
-                uspersample=(1.0/self.clkrate)*pow(2,self.downsample)/twoforoversampling # us per sample = 10 ns * 2^downsample
+                uspersample=(1.0/HAAS_CLKRATE)*pow(2,self.downsample)/twoforoversampling # us per sample = 10 ns * 2^downsample
                 numtoshiftf= 1.0/self.reffreq/4.0 / uspersample
                 print(("would like to shift by",round(numtoshiftf,4),"samples, and uspersample is",uspersample))
                 self.numtoshift = int(round(numtoshiftf,0))+0 # shift by 90 deg

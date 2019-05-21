@@ -19,11 +19,10 @@ class EmatPage(tk.Frame) :
     keyAlt=False
     keyControl=False
 
-    def __init__(self, parent, controller, egs):
+    def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
         self.mq_adapter = mq.Adapter('main_queue')
         self.mq_publisher = mq.Publisher(self.mq_adapter)
-        self.egs = egs
         self.ydatarefchan=-1 #the reference channel for each board, whose ydata will be subtracted from other channels' ydata on the board
         self.dologicanalyzer = False
         self.sincresample=0 # amount of resampling to do (sinx/x)
@@ -341,7 +340,7 @@ class EmatPage(tk.Frame) :
             posi=chantodraw+HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD
             if self.db: print((time.time()-self.oldtime,"drawing line",posi))
             #if self.db: print "ydata[0]=",theydata[0]
-            xdatanew=(self.xsampdata-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
+            xdatanew=(self.xsampdata-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(downsample,0))/HAAS_CLKRATE/self.xscaling) #downsample isn't less than 0 for xscaling
             ydatanew=theydata*(3.3/256)#full scale is 3.3V
             if len(self.lines)>posi: # we may not be drawing, so check!
                 self.lines[posi].set_xdata(xdatanew)
@@ -351,7 +350,7 @@ class EmatPage(tk.Frame) :
         else:
             if self.dologicanalyzer and self.logicline1>=0 and hasattr(self,"ydatalogic"): #this draws logic analyzer info
                 xlogicshift=12.0/pow(2,max(downsample,0)) # shift the logic analyzer data to the right by this number of samples (to account for the ADC delay) #downsample isn't less than 0 for xscaling
-                xdatanew = (self.xdata+xlogicshift-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
+                xdatanew = (self.xdata+xlogicshift-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(downsample,0))/HAAS_CLKRATE/self.xscaling) #downsample isn't less than 0 for xscaling
                 for l in np.arange(8):
                     a=np.array(self.ydatalogic,dtype=np.uint8)
                     b=np.unpackbits(a)
@@ -364,15 +363,15 @@ class EmatPage(tk.Frame) :
                 #if self.db: print time.time()-self.oldtime,"drawing adc line",thechan
                 if len(theydata)<=l: print(("don't have channel",l,"on board",board)); return
                 # if self.egs.dooversample[thechan]==1: # account for oversampling
-                #     xdatanew = (self.xdata2-HAAS_NUM_SAMPLES)*(1000.0*pow(2,max(downsample,0))/self.egs.clkrate/self.xscaling/2.) #downsample isn't less than 0 for xscaling
+                #     xdatanew = (self.xdata2-HAAS_NUM_SAMPLES)*(1000.0*pow(2,max(downsample,0))/HAAS_CLKRATE/self.xscaling/2.) #downsample isn't less than 0 for xscaling
                 #     theydata2=np.concatenate([theydata[l],theydata[l+2]]) # concatenate the 2 lists
                 #     ydatanew=(127-theydata2)*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
                 # elif self.egs.dooversample[thechan]==9: # account for over-oversampling
-                #     xdatanew = (self.xdata4-HAAS_NUM_SAMPLES*2)*(1000.0*pow(2,max(downsample,0))/self.egs.clkrate/self.xscaling/4.) #downsample isn't less than 0 for xscaling
+                #     xdatanew = (self.xdata4-HAAS_NUM_SAMPLES*2)*(1000.0*pow(2,max(downsample,0))/HAAS_CLKRATE/self.xscaling/4.) #downsample isn't less than 0 for xscaling
                 #     theydata4=np.concatenate([theydata[l],theydata[l+1],theydata[l+2],theydata[l+3]]) # concatenate the 4 lists
                 #     ydatanew=(127-theydata4)*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
                 # else:
-                xdatanew = (self.xdata-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
+                xdatanew = (self.xdata-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(downsample,0))/HAAS_CLKRATE/self.xscaling) #downsample isn't less than 0 for xscaling
                 ydatanew=(127-theydata[l])*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
                 if self.ydatarefchan>=0: ydatanew -= (127-theydata[self.ydatarefchan])*(self.yscale/256.) # subtract the board's reference channel ydata from this channel's ydata
                 if self.sincresample>0:

@@ -5,5 +5,7 @@ HAAS_SENDINCREMENT=0 # 0 would skip 2**0=1 byte each time, i.e. send all bytes, 
 HAAS_NUM_CHAN_PER_BOARD = 4 # number of high-speed adc channels on a haasoscope board
 HAAS_NUM_SAMPLES = int(pow(2,HAAS_RAM_WIDTH)/pow(2,HAAS_SENDINCREMENT)) # num samples per channel, max is pow(2,ram_width)/pow(2,0)=4096
 HAAS_NUM_BYTES = HAAS_NUM_SAMPLES*HAAS_NUM_CHAN_PER_BOARD #num bytes per board
+HAAS_CLKRATE = 125.0
+
 
 

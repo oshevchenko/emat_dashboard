@@ -102,7 +102,7 @@ class EmatGUI(tk.Tk):
         self.frames = {} #dic
 
         for F in (EmatPage,):#, Page1, Page2, Page3):
-            frame = F(container, self, egs)
+            frame = F(container, self)
             self.frames[F] = frame
             # frame.grid(row=1, column=0, columnspan=4, sticky="nsew")
         self.frame = self.frames[EmatPage]
@@ -114,11 +114,11 @@ class EmatGUI(tk.Tk):
         # egs.downsample=self.hsl.downsample
         # egs.min_y = self.hsl.min_y
         # egs.max_y = self.hsl.max_y
-        egs.selectedchannel = self.hsl.selectedchannel
+        # egs.selectedchannel = self.hsl.selectedchannel
         # egs.ydatarefchan=self.hsl.ydatarefchan
         # egs.chanlevel = self.hsl.chanlevel
         # egs.acdc = self.hsl.acdc
-        egs.havereadswitchdata = self.hsl.havereadswitchdata
+        # egs.havereadswitchdata = self.hsl.havereadswitchdata
         # egs.switchpos = self.hsl.switchpos
         # egs.trigsactive = self.hsl.trigsactive
         # egs.Vmean = self.hsl.Vmean
@@ -154,7 +154,7 @@ class EmatGUI(tk.Tk):
 
 
 
-egs=EmatGlobalStruct(clkrate=125.0)
+
 
 # d = HaasoscopeSerialLib.Haasoscope()
 # d.construct()
