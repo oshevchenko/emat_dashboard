@@ -274,7 +274,7 @@ class HaasoscopeStateMachine(object):
             elif msg_id==MSG_ID_SELECT_TRIGGER_CHANNEL:
                 channel = message_content['triggerchannel']
                 self.trigsactive[channel] = not self.trigsactive[channel]
-                self.gui.settriggerchan(self,channel, self.trigsactive[channel])
+                self.gui.settriggerchan(channel, self.trigsactive[channel])
                 self.gui.drawtext(self.chantext())
                 firmchan=self.getfirmchan(channel)
                 self.ser.settriggerchan(firmchan)

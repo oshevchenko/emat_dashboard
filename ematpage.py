@@ -150,6 +150,140 @@ class EmatPage(tk.Frame) :
         self.needtoredrawtext=True
         self.canvas.draw()
 
+    def onrelease(self,event): # a key was released
+        #print event.key, "released"
+        if event.key.find("shift")>-1: self.keyShift=False;return
+        if event.key.find("alt")>-1: self.keyAlt=False;return
+        if event.key=="control": self.keyControl=False; return
+        if event.key.find("ctrl")>-1: self.keyControl=False; return
+        if event.key.find("control")>-1: self.keyControl=False; return
+
+    #will grab the next keys as input
+    keyResample=False
+    keysettriggertime=False
+    keySPI=False
+    keyi2c=False
+    keyLevel=False
+    keyShift=False
+    keyAlt=False
+    keyControl=False
+
+    def onpress(self,event): # a key was pressed
+            if self.keyResample:
+                try:
+                    self.sincresample=int(event.key)
+                    print(("resample now",self.sincresample))
+                    if self.sincresample>0: self.xydata=np.empty([num_chan_per_board*HAAS_NUM_BOARD,2,self.sincresample*(self.num_samples-1)],dtype=float)
+                    else: self.xydata=np.empty([num_chan_per_board*HAAS_NUM_BOARD,2,1*(self.num_samples-1)],dtype=float)
+                    self.prepareforsamplechange();
+                    self.keyResample=False; return
+                except ValueError: pass
+            elif self.keysettriggertime:
+                if event.key=="enter":
+                    self.settriggertime(self.triggertimethresh)
+                    self.keysettriggertime=False; return
+                else:
+                    self.triggertimethresh=10*self.triggertimethresh+int(event.key)
+                    print(("triggertimethresh",self.triggertimethresh)); return
+            elif self.keySPI:
+                if event.key=="enter":
+                    self.tellSPIsetup(self.SPIval)
+                    self.keySPI=False; return
+                else:
+                    self.SPIval=10*self.SPIval+int(event.key)
+                    print(("SPIval",self.SPIval)); return
+            elif self.keyi2c:
+                if event.key=="enter":
+                    self.sendi2c(self.i2ctemp)
+                    self.keyi2c=False; return
+                else:
+                    self.i2ctemp=self.i2ctemp+event.key
+                    print(("i2ctemp",self.i2ctemp)); return
+            elif self.keyLevel:
+                if event.key=="enter":
+                    self.keyLevel=False
+                    s=self.leveltemp.split(",")
+                    #print "Got",int(s[0]),int(s[1])
+                    self.selectedchannel=int(s[0])
+                    self.chanlevel[self.selectedchannel] = int(s[1])
+                    self.rememberdacvalue()
+                    self.setdacvalue()
+                    return
+                else:
+                    self.leveltemp=self.leveltemp+event.key
+                    print(("leveltemp",self.leveltemp)); return
+            elif event.key=="r": self.rolltrigger=not self.rolltrigger; self.tellrolltrig(self.rolltrigger);return
+            elif event.key=="p": self.paused = not self.paused;print(("paused",self.paused)); return
+            elif event.key=="P": self.getone = not self.getone;print(("get one",self.getone)); return
+            elif event.key=="a": self.average = not self.average;print(("average",self.average)); return
+            elif event.key=="h": self.togglehighres(); return
+            elif event.key=="e": self.toggleuseexttrig(); return
+            elif event.key=="A": self.toggleautorearm(); return
+            elif event.key=="U": self.toggledousb(); return
+            elif event.key=="O": self.oversamp(self.selectedchannel); self.prepareforsamplechange(); return
+            elif event.key=="ctrl+o": self.overoversamp(); self.prepareforsamplechange(); return
+            elif event.key==">": self.refsinchan=self.selectedchannel; self.oldchanphase=-1.; self.reffreq=0;
+            elif event.key=="t": self.fallingedge=not self.fallingedge;self.settriggertype(self.fallingedge);print(("trigger falling edge toggled to",self.fallingedge)); return
+            elif event.key=="g": self.dogrid=not self.dogrid;print(("dogrid toggled",self.dogrid)); self.ax.grid(self.dogrid); return
+            elif event.key=="ctrl+g": self.ax.xaxis.set_major_locator(plt.MultipleLocator( (self.max_x*1000/1024-self.min_x*1000/1024)/8./5. )); return
+            elif event.key=="G": self.ax.yaxis.set_major_locator(plt.MultipleLocator(0.2)); return
+            elif event.key=="x": self.tellswitchgain(self.selectedchannel)
+            elif event.key=="ctrl+x":
+                for chan in range(num_chan_per_board*HAAS_NUM_BOARD): self.tellswitchgain(chan)
+            elif event.key=="X": self.togglesupergainchan(self.selectedchannel)
+            elif event.key=="ctrl+X":
+                for chan in range(num_chan_per_board*HAAS_NUM_BOARD): self.selectedchannel=chan; self.togglesupergainchan(chan)
+            elif event.key=="F": self.fftchan=self.selectedchannel; self.dofft=True; self.keyShift=False; return
+            elif event.key=="/": self.setacdc();return
+            elif event.key=="I": self.testi2c(); return
+            elif event.key=="c": self.readcalib(); return
+            elif event.key=="C": self.storecalib(); return
+            elif event.key=="D": self.decode(); return
+            elif event.key=="ctrl+r":
+                if self.ydatarefchan<0: self.ydatarefchan=self.selectedchannel
+                else: self.ydatarefchan=-1
+            elif event.key=="|": print("starting autocalibration");self.autocalibchannel=0;
+            elif event.key=="W": self.domaindrawing=not self.domaindrawing; self.domeasure=self.domaindrawing; print(("domaindrawing now",self.domaindrawing)); return
+            elif event.key=="M": self.domeasure=not self.domeasure; print(("domeasure now",self.domeasure)); self.drawtext(); return
+            elif event.key=="m": self.domarkers(); return
+            elif event.key=="Y":
+                if self.selectedchannel+1>=len(self.dooversample): print("can't do XY plot on last channel")
+                else:
+                    if self.dooversample[self.selectedchannel]==self.dooversample[self.selectedchannel+1]:
+                        self.doxyplot=True; self.xychan=self.selectedchannel; print(("doxyplot now",self.doxyplot,"for channel",self.xychan)); return;
+                    else: print("oversampling settings must match between channels for XY plotting")
+                self.keyShift=False
+            elif event.key=="Z": self.recorddata=True; self.recorddatachan=self.selectedchannel; self.recordedchannel=[]; print(("recorddata now",self.recorddata,"for channel",self.recorddatachan)); self.keyShift=False; return;
+            elif event.key=="right": self.telldownsample(self.downsample+1); return
+            elif event.key=="left": self.telldownsample(self.downsample-1); return
+            elif event.key=="shift+right": self.telldownsample(self.downsample+5); return
+            elif event.key=="shift+left": self.telldownsample(self.downsample-5); return
+            elif event.key=="up": self.adjustvertical(True); return
+            elif event.key=="down": self.adjustvertical(False); return
+            elif event.key=="shift+up": self.adjustvertical(True); return
+            elif event.key=="shift+down": self.adjustvertical(False); return
+            elif event.key=="ctrl+up": self.adjustvertical(True); return
+            elif event.key=="ctrl+down": self.adjustvertical(False); return
+            elif event.key=="?": self.togglelogicanalyzer(); return
+            elif event.key=="d": self.tellminidisplaychan(self.selectedchannel);return
+            elif event.key=="R": self.keyResample=True;print("now enter amount to sinc resample (0-9)");return
+            elif event.key=="T": self.keysettriggertime=True;self.triggertimethresh=0;print("now enter time over/under thresh, then enter");return
+            elif event.key=="S": self.keySPI=True;self.SPIval=0;print("now enter SPI code, then enter");return
+            elif event.key=="i": self.keyi2c=True;self.i2ctemp="";print("now enter byte in hex for i2c, then enter:");return
+            elif event.key=="L": self.keyLevel=True;self.leveltemp="";print("now enter [channel to set level for, level] then enter:");return
+            elif event.key=="shift": self.keyShift=True;return
+            elif event.key=="alt": self.keyAlt=True;return
+            elif event.key=="control": self.keyControl=True;return
+            elif event.key=="tab":
+                for l in self.lines:
+                    self.togglechannel(l)
+                self.figure.canvas.draw()
+                return;
+            try:
+                print(('key=%s' % (event.key)))
+                print(('x=%d, y=%d, xdata=%f, ydata=%f' % (event.x, event.y, event.xdata, event.ydata)))
+            except TypeError: pass
+
     def setxaxis(self, xscale):
         if xscale<1e3:
             self.ax.set_xlabel("Time (ns)")
@@ -243,8 +377,8 @@ class EmatPage(tk.Frame) :
         self.otherlines.append(otherline)
         if self.db: print(("drew lines in launch",len(self.otherlines)))
         # self.canvas.mpl_connect('button_press_event', self.onclick)
-        # self.canvas.mpl_connect('key_press_event', self.onpress)
-        # self.canvas.mpl_connect('key_release_event', self.onrelease)
+        self.canvas.mpl_connect('key_press_event', self.onpress)
+        self.canvas.mpl_connect('key_release_event', self.onrelease)
         self.canvas.mpl_connect('pick_event', self.onpick)
         # self.canvas.mpl_connect('scroll_event', self.onscroll)
         self.leg = self.ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1),
