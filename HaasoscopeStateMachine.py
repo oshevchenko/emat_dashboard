@@ -259,19 +259,19 @@ class HaasoscopeStateMachine(object):
             message_content = message.get_content_body()
             msg_id = message_content['id']
             print ("message id:", msg_id)
-            if msg_id==1:
+            if msg_id==MSG_ID_YDATA:
                 ydata = message_content['ydata']
                 bn = message_content['bn']
                 self.gui.on_running(ydata, bn, self.downsample)
-            elif msg_id==2:
+            elif msg_id==MSG_ID_DRAWTEXT:
                 self.gui.drawtext(self.chantext())
-            elif msg_id==3:
+            elif msg_id==MSG_ID_TOGGLE_LOGICANALYZER:
                 self.togglelogicanalyzer()
-            elif msg_id==4:
+            elif msg_id==MSG_ID_SELECT_CHANNEL:
                 self.selectedchannel = message_content['selectedchannel']
                 self.gui.drawtext(self.chantext())
                 print(("New selectedchannel:",self.selectedchannel))
-            elif msg_id==5:
+            elif msg_id==MSG_ID_SELECT_TRIGGER_CHANNEL:
                 channel = message_content['triggerchannel']
                 self.trigsactive[channel] = not self.trigsactive[channel]
                 self.gui.settriggerchan(self,channel, self.trigsactive[channel])

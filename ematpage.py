@@ -290,10 +290,10 @@ class EmatPage(tk.Frame) :
         self.selectedlegline=legline; self.selectedorigline=origline # remember them so we can set it back to normal later when we pick something else
         if channum < HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD: # it's an ADC channel (not a max10adc channel or other thing)
             if self.db: print("picked a real ADC channel")
-            msg = mq.Message({'id': 4, 'selectedchannel': channum})
+            msg = mq.Message({'id': MSG_ID_SELECT_CHANNEL, 'selectedchannel': channum})
             self.mq_publisher.publish(msg)
             if self.keyShift:
-                msg = mq.Message({'id': 5, 'triggerchannel': channum})
+                msg = mq.Message({'id': MSG_ID_SELECT_TRIGGER_CHANNEL, 'triggerchannel': channum})
                 self.mq_publisher.publish(msg)
 
         else:

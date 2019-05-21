@@ -1051,7 +1051,7 @@ class Haasoscope():
                 else: print("you need to set HAAS_SENDINCREMENT = 0 first before debugging lockin info"); return False
             if self.dolockin and self.dolockinplot: self.plot_lockin()
             msg = mq.Message({
-                'id': 1,
+                'id': MSG_ID_YDATA,
                 'ydata': self.ydata,
                 'bn': bn
                 })
@@ -1063,7 +1063,7 @@ class Haasoscope():
             elapsedtime=thetime-self.oldtime
             if elapsedtime>1.0:
                 msg = mq.Message({
-                    'id': 2
+                    'id': MSG_ID_DRAWTEXT
                     })
                 self.mq_publisher.publish(msg)
                 # self.drawtext() #redraws the measurements
