@@ -56,7 +56,7 @@ UPDATE_RATE = 10
 
 # max10adcchans = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
 # sendincrement=0 # 0 would skip 2**0=1 byte each time, i.e. send all bytes, 10 is good for lockin mode (sends just 4 samples)
-# num_chan_per_board = 4 # number of high-speed ADC channels on a Haasoscope board
+
 
 
 class EmatGUI(tk.Tk):
@@ -160,7 +160,7 @@ class EmatGUI(tk.Tk):
 
 
 
-egs=EmatGlobalStruct(max10adcchans=[], sendincrement=0, num_chan_per_board=4, clkrate=125.0)
+egs=EmatGlobalStruct(max10adcchans=[], sendincrement=0, clkrate=125.0)
 
 # d = HaasoscopeSerialLib.Haasoscope()
 # d.construct()
