@@ -20,9 +20,6 @@ class HaasoscopeStateMachine(object):
         self.dologicanalyzer = False
         self.rolltrigger=True #roll the trigger
         self.ser.tellrolltrig(self.rolltrigger)
-        self.ser.tellsamplessend(HAAS_NUM_SAMPLES*pow(2,HAAS_SENDINCREMENT))
-        self.ser.tellsamplesmax10adc(HAAS_NSAMP)
-        self.ser.tellbytesskip(HAAS_SENDINCREMENT)
         self.downsample=2 #adc speed reduction, log 2... so 0 (none), 1(factor 2), 2(factor 4), etc.
         self.dolockin=False # read lockin info
         self.dooversample=np.zeros(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=int) # 1 is oversampling, 0 is no oversampling, 9 is over-oversampling
