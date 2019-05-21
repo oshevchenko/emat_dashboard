@@ -4,8 +4,6 @@ from struct import unpack
 import time, json, os
 from const import *
 # You might adjust these, just override them before calling construct()
-HAAS_NUM_BOARD = 1 # Number of Haasoscope boards to read out
-ram_width = 9 # width in bits of sample ram to use (e.g. 9==512 samples, 12(max)==4096 samples)
 max10adcchans = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
 sendincrement=0 # 0 would skip 2**0=1 byte each time, i.e. send all bytes, 10 is good for lockin mode (sends just 4 samples)
 num_chan_per_board = 4 # number of high-speed ADC channels on a Haasoscope board
@@ -20,9 +18,8 @@ class HaasoscopeStateMachine(object):
         self.mq_adapter = mq.Adapter('main_queue')
         self.mq_subscriber = mq.Subscriber(self.mq_adapter)
 
-        self.num_samples = int(pow(2,ram_width)/pow(2,sendincrement)) # num samples per channel, max is pow(2,ram_width)/pow(2,0)=4096
-        self.num_bytes = self.num_samples*num_chan_per_board #num bytes per board
-        self.nsamp=pow(2,ram_width)-1 #samples for each max10 adc channel (4095 max (not sure why it's 1 less...))
+        self.num_bytes = HAAS_NUM_SAMPLES*num_chan_per_board #num bytes per board
+        self.nsamp=pow(2,HAAS_RAM_WIDTH)-1 #samples for each max10 adc channel (4095 max (not sure why it's 1 less...))
         print(("num main ADC and max10adc bytes for all boards = ",self.num_bytes*HAAS_NUM_BOARD,"and",len(max10adcchans)*self.nsamp))
         self.clkrate=125.0 # ADC sample rate in MHz
 
@@ -31,21 +28,20 @@ class HaasoscopeStateMachine(object):
         self.dologicanalyzer = False
         self.rolltrigger=True #roll the trigger
         self.ser.tellrolltrig(self.rolltrigger)
-        self.ser.tellsamplessend(self.num_samples*pow(2,sendincrement))
+        self.ser.tellsamplessend(HAAS_NUM_SAMPLES*pow(2,sendincrement))
         self.ser.tellsamplesmax10adc(self.nsamp)
         self.ser.tellbytesskip(sendincrement)
         self.ser.set_variables(num_bytes=self.num_bytes, num_chan_per_board=num_chan_per_board,
-            num_samples=self.num_samples,
             max10adcchans=max10adcchans)
         self.downsample=2 #adc speed reduction, log 2... so 0 (none), 1(factor 2), 2(factor 4), etc.
-        self.gui.set_variables(num_samples=self.num_samples, downsample=self.downsample, HAAS_NUM_BOARD=HAAS_NUM_BOARD,num_chan_per_board=num_chan_per_board)
+        self.gui.set_variables(downsample=self.downsample, HAAS_NUM_BOARD=HAAS_NUM_BOARD,num_chan_per_board=num_chan_per_board)
         self.dolockin=False # read lockin info
         self.dooversample=np.zeros(HAAS_NUM_BOARD*num_chan_per_board, dtype=int) # 1 is oversampling, 0 is no oversampling, 9 is over-oversampling
         self.maxdownsample=15 # slowest I can run
         self.telldownsample(self.downsample)
         self.uniqueID=[]
         self.getIDs()
-        xscale =  self.num_samples/2.0*(1000.0*pow(2,self.downsample)/self.clkrate)
+        xscale =  HAAS_NUM_SAMPLES/2.0*(1000.0*pow(2,self.downsample)/self.clkrate)
         self.lowdaclevel=np.ones(HAAS_NUM_BOARD*num_chan_per_board)*2050 # these hold the user set levels for each gain combination
         self.highdaclevel=np.ones(HAAS_NUM_BOARD*num_chan_per_board)*2800
         self.lowdaclevelsuper=np.ones(HAAS_NUM_BOARD*num_chan_per_board)*120
@@ -213,7 +209,7 @@ class HaasoscopeStateMachine(object):
         else:
             if ds>8:
                 ds=8 # otherwise we timeout upon readout
-                if self.num_samples>10: self.ser.settriggerpoint(self.num_samples-10) # set trigger way to the right, so we can capture full event - NOTE - screws up mini-screen!
+                if HAAS_NUM_SAMPLES>10: self.ser.settriggerpoint(HAAS_NUM_SAMPLES-10) # set trigger way to the right, so we can capture full event - NOTE - screws up mini-screen!
                 self.gui.disable_otherline(0)
                 # self.otherlines[0].set_visible(False) # don't draw trigger time position line, to indicate it's not really set anymore
         self.ser.telltickstowait(ds)

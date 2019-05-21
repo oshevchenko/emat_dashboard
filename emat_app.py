@@ -9,9 +9,9 @@ from serial import SerialException
 import HaasoscopeStateMachine
 from HaasoscopeStateMachine import HaasoscopeStateMachine as HSM
 #Some options
+from const import *
 
-#HaasoscopeLib.ram_width = 12 # width in bits of sample ram to use (e.g. 9==512 samples (default), 12(max)==4096 samples) (min is 2)
-#HaasoscopeLib.max10adcchans = [(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp # default is none, []
+
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('TkAgg')
@@ -54,7 +54,6 @@ plt.rcParams['keymap.all_axes'] = ''
 UPDATE_RATE = 10
 
 
-# ram_width = 9 # width in bits of sample ram to use (e.g. 9==512 samples, 12(max)==4096 samples)
 # max10adcchans = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
 # sendincrement=0 # 0 would skip 2**0=1 byte each time, i.e. send all bytes, 10 is good for lockin mode (sends just 4 samples)
 # num_chan_per_board = 4 # number of high-speed ADC channels on a Haasoscope board
@@ -161,9 +160,8 @@ class EmatGUI(tk.Tk):
 
 
 
-egs=EmatGlobalStruct(ram_width=9, max10adcchans=[], sendincrement=0, num_chan_per_board=4, clkrate=125.0)
+egs=EmatGlobalStruct(max10adcchans=[], sendincrement=0, num_chan_per_board=4, clkrate=125.0)
 
-print(("egs.num_samples=",egs.num_samples))
 # d = HaasoscopeSerialLib.Haasoscope()
 # d.construct()
 # if not d.setup_connections(): sys.exit()

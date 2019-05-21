@@ -83,9 +83,9 @@ class Haasoscope():
         self.usbser=[]
         self.otherlines = []
         self.texts = []
-        # self.xdata=np.arange(self.num_samples)
-        # self.xdata2=np.arange(self.num_samples*2) # for oversampling
-        # self.xdata4=np.arange(self.num_samples*4) # for over-oversampling
+        # self.xdata=np.arange(HAAS_NUM_SAMPLES)
+        # self.xdata2=np.arange(HAAS_NUM_SAMPLES*2) # for oversampling
+        # self.xdata4=np.arange(HAAS_NUM_SAMPLES*4) # for over-oversampling
         self.ydata = []
         # ysampdatat=np.zeros(self.nsamp*len(max10adcchans)); self.ysampdata=np.reshape(ysampdatat,(len(max10adcchans),self.nsamp))
         # self.xsampdata=np.arange(self.nsamp)
@@ -265,9 +265,9 @@ class Haasoscope():
 
     def settriggertime(self,ttt):
         #tell it the trigger time over/under threshold required
-        # if ttt>self.num_samples and ttt>10:
+        # if ttt>HAAS_NUM_SAMPLES and ttt>10:
         usedownsamplefortriggertot=True
-        if usedownsamplefortriggertot: ttt+=pow(2,12) #set bit [ram_width] (max) = 1
+        if usedownsamplefortriggertot: ttt+=pow(2,12) #set bit [HAAS_RAM_WIDTH] (max) = 1
         frame=[]
         frame.append(129)
         frame.extend(bytearray.fromhex('{:04x}'.format(ttt)))
@@ -788,8 +788,8 @@ class Haasoscope():
         if self.lockinanalyzedataboard!=board: return False
         y2 = self.ydata[2] # channel 2 signal
         y3 = self.ydata[3] # channel 3 signal
-        meany2=np.sum(y2)/self.num_samples
-        meany3=np.sum(y3)/self.num_samples
+        meany2=np.sum(y2)/HAAS_NUM_SAMPLES
+        meany3=np.sum(y3)/HAAS_NUM_SAMPLES
         y2 = y2-meany2
         y3 = y3-meany3
         y3shifted = np.roll(y3,self.numtoshift)
@@ -806,11 +806,11 @@ class Haasoscope():
             print(("no window:  ",r1m.round(2), r2m.round(2), self.numtoshift, meany2.round(1),meany3.round(1)))
             print((ampl.round(2), phase.round(2), "<------ offline no window"))
         lowerwindowedge = self.numtoshift+1
-        upperwindowedge = self.num_samples-self.numtoshift
+        upperwindowedge = HAAS_NUM_SAMPLES-self.numtoshift
         if self.debuglockin:
             self.ydata[0]= y3shifted+127 # to see on screen, alter self.ydata here
             self.ydata[0][0:lowerwindowedge] = np.zeros((lowerwindowedge,), dtype=np.int)+127
-            self.ydata[0][upperwindowedge:self.num_samples] = np.zeros((self.num_samples-upperwindowedge,), dtype=np.int)+127
+            self.ydata[0][upperwindowedge:HAAS_NUM_SAMPLES] = np.zeros((HAAS_NUM_SAMPLES-upperwindowedge,), dtype=np.int)+127
         y2window = y2[lowerwindowedge:upperwindowedge]
         y3window = y3[lowerwindowedge:upperwindowedge]
         y3shiftedwindow = y3shifted[lowerwindowedge:upperwindowedge]
@@ -922,13 +922,13 @@ class Haasoscope():
             self.timedout = False
             db2=False #True
             if db2: print((byte_array[1:11]))
-            self.ydata=np.reshape(byte_array,(self.num_chan_per_board,self.num_samples))
+            self.ydata=np.reshape(byte_array,(self.num_chan_per_board,HAAS_NUM_SAMPLES))
             # if self.dooversample[self.num_chan_per_board*(HAAS_NUM_BOARD-board-1)]: self.oversample(0,2)
             # if self.dooversample[self.num_chan_per_board*(HAAS_NUM_BOARD-board-1)+1]: self.oversample(1,3)
             # if self.dooversample[self.num_chan_per_board*(HAAS_NUM_BOARD-board-1)]==9: self.overoversample(0,1)
             if self.average:
                 for c in np.arange(self.num_chan_per_board):
-                    for i in np.arange(self.num_samples/2):
+                    for i in np.arange(HAAS_NUM_SAMPLES/2):
                         val=(self.ydata[c][2*i]+self.ydata[c][2*i+1])/2
                         self.ydata[c][2*i]=val; self.ydata[c][2*i+1]=val;
         else:
@@ -951,7 +951,7 @@ class Haasoscope():
             if len(rslt)==logicbytes:
                 db2=False #True
                 if db2: print((byte_array[1:11]))
-                self.ydatalogic=np.reshape(byte_array,(1,self.num_samples))
+                self.ydatalogic=np.reshape(byte_array,(1,HAAS_NUM_SAMPLES))
             else:
                 if not self.db and self.rollingtrigger: print(("getdata asked for",self.num_bytes,"logic bytes and got",len(rslt),"from board",board))
                 if len(rslt)>0 and self.rollingtrigger: print((byte_array[0:10]))
@@ -970,7 +970,7 @@ class Haasoscope():
             tempc1=meanrms*(tempc1-mean_c1)/rms_c1 + meanmean
             tempc2=meanrms*(tempc2-mean_c2)/rms_c2 + meanmean
             #print mean_c1, mean_c2, rms_c1, rms_c2
-        ns=self.num_samples
+        ns=HAAS_NUM_SAMPLES
         mergedsamps=np.empty(ns*2)
         mergedsamps[0:ns*2:2]=tempc1 # a little tricky which is 0 and which is 1 (i.e. which is sampled first!)
         mergedsamps[1:ns*2:2]=tempc2
@@ -991,7 +991,7 @@ class Haasoscope():
             tempc1=meanrms*(tempc1-mean_c1)/rms_c1 + meanmean
             tempc2=meanrms*(tempc2-mean_c2)/rms_c2 + meanmean
             #print mean_c1, mean_c2, rms_c1, rms_c2
-        ns=2*self.num_samples
+        ns=2*HAAS_NUM_SAMPLES
         mergedsamps=np.empty(ns*2)
         mergedsamps[0:ns*2:2]=tempc1 # a little tricky which is 0 and which is 1 (i.e. which is sampled first!)
         mergedsamps[1:ns*2:2]=tempc2
@@ -1119,7 +1119,7 @@ class Haasoscope():
             print(("minimum firmwareversion of all boards is",self.minfirmwareversion))
             self.maxdownsample=15 # slowest I can run
             if self.minfirmwareversion>=5: #updated firmware
-                self.maxdownsample=15 +(12-ram_width) # slowest I can run (can add 12-ram_width when using newer firmware)
+                self.maxdownsample=15 +(12-HAAS_RAM_WIDTH) # slowest I can run (can add 12-HAAS_RAM_WIDTH when using newer firmware)
             # self.tellbytesskip()
             # self.telldownsample(self.downsample)
             self.togglehighres()
