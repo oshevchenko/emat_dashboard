@@ -6,6 +6,7 @@ HAAS_NUM_CHAN_PER_BOARD = 4 # number of high-speed adc channels on a haasoscope 
 HAAS_NUM_SAMPLES = int(pow(2,HAAS_RAM_WIDTH)/pow(2,HAAS_SENDINCREMENT)) # num samples per channel, max is pow(2,ram_width)/pow(2,0)=4096
 HAAS_NUM_BYTES = HAAS_NUM_SAMPLES*HAAS_NUM_CHAN_PER_BOARD #num bytes per board
 HAAS_CLKRATE = 125.0
+HAAS_NSAMP = pow(2,HAAS_RAM_WIDTH)-1 #samples for each max10 adc channel (4095 max (not sure why it's 1 less...))
 
 
 

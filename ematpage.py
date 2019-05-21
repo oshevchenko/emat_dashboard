@@ -51,7 +51,7 @@ class EmatPage(tk.Frame) :
         self.logicline1 = -1 # to remember which is the first logic analyzer line
         self.otherlines = []
         self.texts = []
-        # self.xydataslow=np.empty([len(HAAS_MAX10ADCCHANS),2,self.egs.nsamp],dtype=float)
+        # self.xydataslow=np.empty([len(HAAS_MAX10ADCCHANS),2,HAAS_NSAMP],dtype=float)
         # if self.domaindrawing: self.on_launch_draw()
 
         # >>>>>>>>>>>>>>>>>>>>>>>>>

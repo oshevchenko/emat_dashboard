@@ -14,15 +14,14 @@ class HaasoscopeStateMachine(object):
         self.mq_adapter = mq.Adapter('main_queue')
         self.mq_subscriber = mq.Subscriber(self.mq_adapter)
 
-        self.nsamp=pow(2,HAAS_RAM_WIDTH)-1 #samples for each max10 adc channel (4095 max (not sure why it's 1 less...))
-        print(("num main ADC and max10adc bytes for all boards = ",HAAS_NUM_BYTES*HAAS_NUM_BOARD,"and",len(HAAS_MAX10ADCCHANS)*self.nsamp))
+        print(("num main ADC and max10adc bytes for all boards = ",HAAS_NUM_BYTES*HAAS_NUM_BOARD,"and",len(HAAS_MAX10ADCCHANS)*HAAS_NSAMP))
         self.Vrms=np.zeros(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=float) # the Vrms for each channel
         self.Vmean=np.zeros(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=float) # the Vmean for each channel
         self.dologicanalyzer = False
         self.rolltrigger=True #roll the trigger
         self.ser.tellrolltrig(self.rolltrigger)
         self.ser.tellsamplessend(HAAS_NUM_SAMPLES*pow(2,HAAS_SENDINCREMENT))
-        self.ser.tellsamplesmax10adc(self.nsamp)
+        self.ser.tellsamplesmax10adc(HAAS_NSAMP)
         self.ser.tellbytesskip(HAAS_SENDINCREMENT)
         self.downsample=2 #adc speed reduction, log 2... so 0 (none), 1(factor 2), 2(factor 4), etc.
         self.dolockin=False # read lockin info

@@ -87,8 +87,8 @@ class Haasoscope():
         # self.xdata2=np.arange(HAAS_NUM_SAMPLES*2) # for oversampling
         # self.xdata4=np.arange(HAAS_NUM_SAMPLES*4) # for over-oversampling
         self.ydata = []
-        # ysampdatat=np.zeros(self.nsamp*len(HAAS_MAX10ADCCHANS)); self.ysampdata=np.reshape(ysampdatat,(len(HAAS_MAX10ADCCHANS),self.nsamp))
-        # self.xsampdata=np.arange(self.nsamp)
+        # ysampdatat=np.zeros(HAAS_NSAMP*len(HAAS_MAX10ADCCHANS)); self.ysampdata=np.reshape(ysampdatat,(len(HAAS_MAX10ADCCHANS),HAAS_NSAMP))
+        # self.xsampdata=np.arange(HAAS_NSAMP)
         self.paused=False
         self.getone=False
         self.average=False #will average every 2 samples
@@ -143,7 +143,7 @@ class Haasoscope():
         frame.extend(bytearray.fromhex('{:04x}'.format(nsamp)))
         self.ser.write(frame)
 
-        if self.db: print(("Nsamp for max10 ADC is ",256*frame[1]+1*frame[2]," self.nsamp:",self.nsamp))
+        if self.db: print(("Nsamp for max10 ADC is ",256*frame[1]+1*frame[2]," HAAS_NSAMP:",HAAS_NSAMP))
 
     def settriggerpoint(self,tp):
         #tell it the trigger point
@@ -404,7 +404,7 @@ class Haasoscope():
             frame.append(137)
             self.ser.write(frame)
             print(("dousb toggled to",self.dousb))
-            if self.dousb: print(("rate theoretically",round(4000000./(HAAS_NUM_BYTES*HAAS_NUM_BOARD+len(HAAS_MAX10ADCCHANS)*self.nsamp),2),"Hz over USB2"))
+            if self.dousb: print(("rate theoretically",round(4000000./(HAAS_NUM_BYTES*HAAS_NUM_BOARD+len(HAAS_MAX10ADCCHANS)*HAAS_NSAMP),2),"Hz over USB2"))
             self.telltickstowait()
 
     def togglehighres(self):#toggle whether to do highres averaging during downsampling or not
@@ -1010,14 +1010,14 @@ class Haasoscope():
             frame.append(chan)
             self.ser.write(frame)
             if self.db: print((time.time()-self.oldtime,"getting max10adc chan",chan,"for bn",bn))
-            rslt = self.ser.read(self.nsamp*2) #read N bytes (2 per sample)
+            rslt = self.ser.read(HAAS_NSAMP*2) #read N bytes (2 per sample)
             if self.db: print((time.time()-self.oldtime,"getmax10adc got bytes:",len(rslt)))
-            if len(rslt)!=(self.nsamp*2):
+            if len(rslt)!=(HAAS_NSAMP*2):
                 print((time.time()-self.oldtime,"getmax10adc got bytes:",len(rslt),"for board",bn,"and chan",chan))
                 return
             byte_array = unpack('%dB'%len(rslt),rslt) #Convert serial data to array of numbers
             db2=False #True #False
-            self.ysampdata[self.max10adcchan-1]=np.add(np.multiply(256,byte_array[1:2*self.nsamp:2]),byte_array[0:2*self.nsamp:2])
+            self.ysampdata[self.max10adcchan-1]=np.add(np.multiply(256,byte_array[1:2*HAAS_NSAMP:2]),byte_array[0:2*HAAS_NSAMP:2])
             self.ysampdata[self.max10adcchan-1]/=16
             if db2:
                 for samp in np.arange(10):
@@ -1161,7 +1161,7 @@ class Haasoscope():
     #For setting up serial and USB connections
     def setup_connections(self):
         adjustedbrate=1./(1./self.brate+2.*self.serialdelaytimerwait*1.e-6/(32.*11.)) # delay of 2*serialdelaytimerwait microseconds every 32*11 bits
-        # serialrate=adjustedbrate/11./(HAAS_NUM_BYTES*HAAS_NUM_BOARD+len(HAAS_MAX10ADCCHANS)*self.nsamp) #including start+2stop bits
+        # serialrate=adjustedbrate/11./(HAAS_NUM_BYTES*HAAS_NUM_BOARD+len(HAAS_MAX10ADCCHANS)*HAAS_NSAMP) #including start+2stop bits
         # print(("rate theoretically",round(serialrate,2),"Hz over serial"))
         ports = list(serial.tools.list_ports.comports()); ports.sort(reverse=True)
         autofindusbports = len(self.usbport)==0
