@@ -52,7 +52,7 @@ class EmatPage(tk.Frame) :
         self.logicline1 = -1 # to remember which is the first logic analyzer line
         self.otherlines = []
         self.texts = []
-        # self.xydataslow=np.empty([len(self.egs.max10adcchans),2,self.egs.nsamp],dtype=float)
+        # self.xydataslow=np.empty([len(HAAS_MAX10ADCCHANS),2,self.egs.nsamp],dtype=float)
         # if self.domaindrawing: self.on_launch_draw()
 
         # >>>>>>>>>>>>>>>>>>>>>>>>>
@@ -186,21 +186,21 @@ class EmatPage(tk.Frame) :
 
     def on_launch_draw(self, xscale, text):
         plt.ion() #turn on interactive mode
-        self.nlines = HAAS_NUM_CHAN_PER_BOARD*HAAS_NUM_BOARD+len(self.egs.max10adcchans)
+        self.nlines = HAAS_NUM_CHAN_PER_BOARD*HAAS_NUM_BOARD+len(HAAS_MAX10ADCCHANS)
         if self.db: print(("nlines=",self.nlines))
         for l in np.arange(self.nlines):
             maxchan=l-HAAS_NUM_CHAN_PER_BOARD*HAAS_NUM_BOARD
             c=(0,0,0)
             if maxchan>=0: # these are the slow ADC channels
                 if HAAS_NUM_BOARD>1:
-                    board = int(HAAS_NUM_BOARD-1-self.egs.max10adcchans[maxchan][0])
+                    board = int(HAAS_NUM_BOARD-1-HAAS_MAX10ADCCHANS[maxchan][0])
                     if board%4==0: c=(1-0.1*maxchan,0,0)
                     if board%4==1: c=(0,1-0.1*maxchan,0)
                     if board%4==2: c=(0,0,1-0.1*maxchan)
                     if board%4==3: c=(1-0.1*maxchan,0,1-0.1*maxchan)
                 else:
                     c=(0.1*(maxchan+1),0.1*(maxchan+1),0.1*(maxchan+1))
-                line, = self.ax.plot([],[], '-', label=str(self.egs.max10adcchans[maxchan]), color=c, linewidth=0.5, alpha=.5)
+                line, = self.ax.plot([],[], '-', label=str(HAAS_MAX10ADCCHANS[maxchan]), color=c, linewidth=0.5, alpha=.5)
             else: # these are the fast ADC channels
                 chan=l%4
                 if HAAS_NUM_BOARD>1:
@@ -335,13 +335,13 @@ class EmatPage(tk.Frame) :
             self.canvas.draw()
             print("drawxyplot, self.canvas.draw")
 
-    def on_running(self, theydata, board): #update data for main plot for a board
+    def on_running(self, theydata, board, downsample): #update data for main plot for a board
         if board<0: #hack to tell it the max10adc channel
             chantodraw=-board-1 #draw chan 0 first (when board=-1)
             posi=chantodraw+HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD
             if self.db: print((time.time()-self.oldtime,"drawing line",posi))
             #if self.db: print "ydata[0]=",theydata[0]
-            xdatanew=(self.xsampdata-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(self.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
+            xdatanew=(self.xsampdata-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
             ydatanew=theydata*(3.3/256)#full scale is 3.3V
             if len(self.lines)>posi: # we may not be drawing, so check!
                 self.lines[posi].set_xdata(xdatanew)
@@ -350,8 +350,8 @@ class EmatPage(tk.Frame) :
             self.xydataslow[chantodraw][1]=ydatanew
         else:
             if self.dologicanalyzer and self.logicline1>=0 and hasattr(self,"ydatalogic"): #this draws logic analyzer info
-                xlogicshift=12.0/pow(2,max(self.downsample,0)) # shift the logic analyzer data to the right by this number of samples (to account for the ADC delay) #downsample isn't less than 0 for xscaling
-                xdatanew = (self.xdata+xlogicshift-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(self.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
+                xlogicshift=12.0/pow(2,max(downsample,0)) # shift the logic analyzer data to the right by this number of samples (to account for the ADC delay) #downsample isn't less than 0 for xscaling
+                xdatanew = (self.xdata+xlogicshift-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
                 for l in np.arange(8):
                     a=np.array(self.ydatalogic,dtype=np.uint8)
                     b=np.unpackbits(a)
@@ -364,15 +364,15 @@ class EmatPage(tk.Frame) :
                 #if self.db: print time.time()-self.oldtime,"drawing adc line",thechan
                 if len(theydata)<=l: print(("don't have channel",l,"on board",board)); return
                 # if self.egs.dooversample[thechan]==1: # account for oversampling
-                #     xdatanew = (self.xdata2-HAAS_NUM_SAMPLES)*(1000.0*pow(2,max(self.downsample,0))/self.egs.clkrate/self.xscaling/2.) #downsample isn't less than 0 for xscaling
+                #     xdatanew = (self.xdata2-HAAS_NUM_SAMPLES)*(1000.0*pow(2,max(downsample,0))/self.egs.clkrate/self.xscaling/2.) #downsample isn't less than 0 for xscaling
                 #     theydata2=np.concatenate([theydata[l],theydata[l+2]]) # concatenate the 2 lists
                 #     ydatanew=(127-theydata2)*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
                 # elif self.egs.dooversample[thechan]==9: # account for over-oversampling
-                #     xdatanew = (self.xdata4-HAAS_NUM_SAMPLES*2)*(1000.0*pow(2,max(self.downsample,0))/self.egs.clkrate/self.xscaling/4.) #downsample isn't less than 0 for xscaling
+                #     xdatanew = (self.xdata4-HAAS_NUM_SAMPLES*2)*(1000.0*pow(2,max(downsample,0))/self.egs.clkrate/self.xscaling/4.) #downsample isn't less than 0 for xscaling
                 #     theydata4=np.concatenate([theydata[l],theydata[l+1],theydata[l+2],theydata[l+3]]) # concatenate the 4 lists
                 #     ydatanew=(127-theydata4)*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
                 # else:
-                xdatanew = (self.xdata-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(self.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
+                xdatanew = (self.xdata-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
                 ydatanew=(127-theydata[l])*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
                 if self.ydatarefchan>=0: ydatanew -= (127-theydata[self.ydatarefchan])*(self.yscale/256.) # subtract the board's reference channel ydata from this channel's ydata
                 if self.sincresample>0:
@@ -450,10 +450,3 @@ class EmatPage(tk.Frame) :
 
     def disable_otherline(self, n):
         self.otherlines[n].set_visible(False)
-     # Number of Haasoscope boards to read out
-    def set_variables(self, **argd):
-        self.__dict__.update (argd)
-
-    #[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
-     # 0 would skip 2**0=1 byte each time, i.e. send all bytes, 10 is good for lockin mode (sends just 4 samples)
-     # number of high-speed ADC channels on a Haasoscope board

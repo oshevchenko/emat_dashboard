@@ -4,7 +4,7 @@ from struct import unpack
 import time, json, os
 from const import *
 # You might adjust these, just override them before calling construct()
-max10adcchans = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
+HAAS_MAX10ADCCHANS = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
 
 
 
@@ -18,9 +18,8 @@ class HaasoscopeStateMachine(object):
         self.mq_adapter = mq.Adapter('main_queue')
         self.mq_subscriber = mq.Subscriber(self.mq_adapter)
 
-        self.num_bytes = HAAS_NUM_SAMPLES*HAAS_NUM_CHAN_PER_BOARD #num bytes per board
         self.nsamp=pow(2,HAAS_RAM_WIDTH)-1 #samples for each max10 adc channel (4095 max (not sure why it's 1 less...))
-        print(("num main ADC and max10adc bytes for all boards = ",self.num_bytes*HAAS_NUM_BOARD,"and",len(max10adcchans)*self.nsamp))
+        print(("num main ADC and max10adc bytes for all boards = ",HAAS_NUM_BYTES*HAAS_NUM_BOARD,"and",len(HAAS_MAX10ADCCHANS)*self.nsamp))
         self.clkrate=125.0 # ADC sample rate in MHz
 
         self.Vrms=np.zeros(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=float) # the Vrms for each channel
@@ -31,10 +30,7 @@ class HaasoscopeStateMachine(object):
         self.ser.tellsamplessend(HAAS_NUM_SAMPLES*pow(2,HAAS_SENDINCREMENT))
         self.ser.tellsamplesmax10adc(self.nsamp)
         self.ser.tellbytesskip(HAAS_SENDINCREMENT)
-        self.ser.set_variables(num_bytes=self.num_bytes,
-            max10adcchans=max10adcchans)
         self.downsample=2 #adc speed reduction, log 2... so 0 (none), 1(factor 2), 2(factor 4), etc.
-        self.gui.set_variables(downsample=self.downsample)
         self.dolockin=False # read lockin info
         self.dooversample=np.zeros(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=int) # 1 is oversampling, 0 is no oversampling, 9 is over-oversampling
         self.maxdownsample=15 # slowest I can run
@@ -89,7 +85,7 @@ class HaasoscopeStateMachine(object):
             if self.dooversample[self.selectedchannel]==9: text+= "\nOversampled x4"
         else:
             if self.selectedchannel>1 and self.dooversample[self.selectedchannel-2]: text+= "\nOff (oversamp)"
-        if len(max10adcchans)>0:
+        if len(HAAS_MAX10ADCCHANS)>0:
             text+="\n"
             text+="\nSlow chan: "+str(self.selectedmax10channel)
         return text
@@ -276,7 +272,7 @@ class HaasoscopeStateMachine(object):
             if msg_id==1:
                 ydata = message_content['ydata']
                 bn = message_content['bn']
-                self.gui.on_running(ydata, bn)
+                self.gui.on_running(ydata, bn, self.downsample)
             elif msg_id==2:
                 self.gui.drawtext(self.chantext())
             elif msg_id==3:

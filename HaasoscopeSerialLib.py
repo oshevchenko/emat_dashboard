@@ -8,7 +8,7 @@ import numpy as np
 import time, json, os
 import matplotlib
 from const import *
-max10adcchans = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
+
 
 mearm=False
 mewin=False
@@ -77,7 +77,7 @@ class Haasoscope():
         self.serialdelaytimerwait=100 #150 # 600 # delay (in 2 us steps) between each 32 bytes of serial output (set to 600 for some slow USB serial setups, but 0 normally)
         if mearm: self.serialdelaytimerwait=600
         self.brate = 1500000 #serial baud rate #1500000 #115200 #921600
-        self.sertimeout = 3.0 #time to wait for serial response #3.0, num_bytes*8*10.0/brate, or None
+        self.sertimeout = 3.0 #time to wait for serial response #3.0, HAAS_NUM_BYTES*8*10.0/brate, or None
         self.serport="" # the name of the serial port on your computer, connected to Haasoscope, like /dev/ttyUSB0 or COM8, leave blank to detect automatically!
         self.usbport=[] # the names of the USB2 ports on your computer, connected to Haasoscope, leave blank to detect automatically!
         self.usbser=[]
@@ -87,7 +87,7 @@ class Haasoscope():
         # self.xdata2=np.arange(HAAS_NUM_SAMPLES*2) # for oversampling
         # self.xdata4=np.arange(HAAS_NUM_SAMPLES*4) # for over-oversampling
         self.ydata = []
-        # ysampdatat=np.zeros(self.nsamp*len(max10adcchans)); self.ysampdata=np.reshape(ysampdatat,(len(max10adcchans),self.nsamp))
+        # ysampdatat=np.zeros(self.nsamp*len(HAAS_MAX10ADCCHANS)); self.ysampdata=np.reshape(ysampdatat,(len(HAAS_MAX10ADCCHANS),self.nsamp))
         # self.xsampdata=np.arange(self.nsamp)
         self.paused=False
         self.getone=False
@@ -404,7 +404,7 @@ class Haasoscope():
             frame.append(137)
             self.ser.write(frame)
             print(("dousb toggled to",self.dousb))
-            if self.dousb: print(("rate theoretically",round(4000000./(self.num_bytes*HAAS_NUM_BOARD+len(max10adcchans)*self.nsamp),2),"Hz over USB2"))
+            if self.dousb: print(("rate theoretically",round(4000000./(HAAS_NUM_BYTES*HAAS_NUM_BOARD+len(HAAS_MAX10ADCCHANS)*self.nsamp),2),"Hz over USB2"))
             self.telltickstowait()
 
     def togglehighres(self):#toggle whether to do highres averaging during downsampling or not
@@ -889,8 +889,8 @@ class Haasoscope():
                 self.ser.write(frame)
                 for usb in np.arange(len(self.usbser)):
                     if not usb in foundusbs: # it's not already known that this usb connection is assigned to a board
-                        rslt = self.usbser[usb].read(self.num_bytes) # try to get data from the board
-                        if len(rslt)==self.num_bytes:
+                        rslt = self.usbser[usb].read(HAAS_NUM_BYTES) # try to get data from the board
+                        if len(rslt)==HAAS_NUM_BYTES:
                             #print "   got the right nbytes for board",bn,"from usb",usb
                             self.usbsermap[bn]=usb
                             foundusbs.append(usb) # remember that we already have figured out which board this usb connection is for, so we don't bother trying again for another board
@@ -910,15 +910,15 @@ class Haasoscope():
         if self.dolockin: self.getlockindata(board)
         if self.dousb:
             #try:
-            rslt = self.usbser[self.usbsermap[board]].read(self.num_bytes)
+            rslt = self.usbser[self.usbsermap[board]].read(HAAS_NUM_BYTES)
                 #usbser.flushInput() #just in case
         #except serial.SerialException: pass
         else:
-            rslt = self.ser.read(self.num_bytes)
+            rslt = self.ser.read(HAAS_NUM_BYTES)
             #ser.flushInput() #just in case
-        if self.db: print((time.time()-self.oldtime,"getdata wanted",self.num_bytes,"bytes and got",len(rslt),"from board",board))
+        if self.db: print((time.time()-self.oldtime,"getdata wanted",HAAS_NUM_BYTES,"bytes and got",len(rslt),"from board",board))
         byte_array = unpack('%dB'%len(rslt),rslt) #Convert serial data to array of numbers
-        if len(rslt)==self.num_bytes:
+        if len(rslt)==HAAS_NUM_BYTES:
             self.timedout = False
             db2=False #True
             if db2: print((byte_array[1:11]))
@@ -933,11 +933,11 @@ class Haasoscope():
                         self.ydata[c][2*i]=val; self.ydata[c][2*i+1]=val;
         else:
             self.timedout = True
-            if not self.db and self.rollingtrigger: print(("getdata asked for",self.num_bytes,"bytes and got",len(rslt),"from board",board))
+            if not self.db and self.rollingtrigger: print(("getdata asked for",HAAS_NUM_BYTES,"bytes and got",len(rslt),"from board",board))
             if len(rslt)>0 and self.rollingtrigger: print((byte_array[0:10]))
         if self.dologicanalyzer:
             #get extra logic analyzer data, if needed
-            logicbytes=self.num_bytes/4
+            logicbytes=HAAS_NUM_BYTES/4
             if self.dousb:
                 #try:
                 rslt = self.usbser[self.usbsermap[board]].read(logicbytes)
@@ -953,7 +953,7 @@ class Haasoscope():
                 if db2: print((byte_array[1:11]))
                 self.ydatalogic=np.reshape(byte_array,(1,HAAS_NUM_SAMPLES))
             else:
-                if not self.db and self.rollingtrigger: print(("getdata asked for",self.num_bytes,"logic bytes and got",len(rslt),"from board",board))
+                if not self.db and self.rollingtrigger: print(("getdata asked for",HAAS_NUM_BYTES,"logic bytes and got",len(rslt),"from board",board))
                 if len(rslt)>0 and self.rollingtrigger: print((byte_array[0:10]))
 
     def oversample(self,c1,c2):
@@ -1001,7 +1001,7 @@ class Haasoscope():
         self.ydata[c2+2]=mergedsamps[3*ns/2:ns*2]
 
     def getmax10adc(self,bn):
-        chansthisboard = [(x,y) for (x,y) in max10adcchans if x==bn]
+        chansthisboard = [(x,y) for (x,y) in HAAS_MAX10ADCCHANS if x==bn]
         if self.db: print((time.time()-self.oldtime,"getting",chansthisboard))
         for chans in chansthisboard:
             chan=chans[1]
@@ -1161,7 +1161,7 @@ class Haasoscope():
     #For setting up serial and USB connections
     def setup_connections(self):
         adjustedbrate=1./(1./self.brate+2.*self.serialdelaytimerwait*1.e-6/(32.*11.)) # delay of 2*serialdelaytimerwait microseconds every 32*11 bits
-        # serialrate=adjustedbrate/11./(self.num_bytes*HAAS_NUM_BOARD+len(max10adcchans)*self.nsamp) #including start+2stop bits
+        # serialrate=adjustedbrate/11./(HAAS_NUM_BYTES*HAAS_NUM_BOARD+len(HAAS_MAX10ADCCHANS)*self.nsamp) #including start+2stop bits
         # print(("rate theoretically",round(serialrate,2),"Hz over serial"))
         ports = list(serial.tools.list_ports.comports()); ports.sort(reverse=True)
         autofindusbports = len(self.usbport)==0
@@ -1184,6 +1184,3 @@ class Haasoscope():
             print(("connected USBserial to",p,", timeout",self.sertimeout,"seconds"))
         if self.serport=="": print("No serial COM port opened!"); return False
         return True
-
-    def set_variables(self, **argd):
-            self.__dict__.update (argd)

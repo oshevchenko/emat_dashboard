@@ -154,7 +154,7 @@ class EmatGUI(tk.Tk):
 
 
 
-egs=EmatGlobalStruct(max10adcchans=[], clkrate=125.0)
+egs=EmatGlobalStruct(clkrate=125.0)
 
 # d = HaasoscopeSerialLib.Haasoscope()
 # d.construct()
