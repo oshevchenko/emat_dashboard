@@ -2,9 +2,9 @@ import message_queue as mq
 import numpy as np
 from struct import unpack
 import time, json, os
-
+from const import *
 # You might adjust these, just override them before calling construct()
-num_board = 1 # Number of Haasoscope boards to read out
+HAAS_NUM_BOARD = 1 # Number of Haasoscope boards to read out
 ram_width = 9 # width in bits of sample ram to use (e.g. 9==512 samples, 12(max)==4096 samples)
 max10adcchans = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
 sendincrement=0 # 0 would skip 2**0=1 byte each time, i.e. send all bytes, 10 is good for lockin mode (sends just 4 samples)
@@ -23,11 +23,11 @@ class HaasoscopeStateMachine(object):
         self.num_samples = int(pow(2,ram_width)/pow(2,sendincrement)) # num samples per channel, max is pow(2,ram_width)/pow(2,0)=4096
         self.num_bytes = self.num_samples*num_chan_per_board #num bytes per board
         self.nsamp=pow(2,ram_width)-1 #samples for each max10 adc channel (4095 max (not sure why it's 1 less...))
-        print(("num main ADC and max10adc bytes for all boards = ",self.num_bytes*num_board,"and",len(max10adcchans)*self.nsamp))
+        print(("num main ADC and max10adc bytes for all boards = ",self.num_bytes*HAAS_NUM_BOARD,"and",len(max10adcchans)*self.nsamp))
         self.clkrate=125.0 # ADC sample rate in MHz
 
-        self.Vrms=np.zeros(num_board*num_chan_per_board, dtype=float) # the Vrms for each channel
-        self.Vmean=np.zeros(num_board*num_chan_per_board, dtype=float) # the Vmean for each channel
+        self.Vrms=np.zeros(HAAS_NUM_BOARD*num_chan_per_board, dtype=float) # the Vrms for each channel
+        self.Vmean=np.zeros(HAAS_NUM_BOARD*num_chan_per_board, dtype=float) # the Vmean for each channel
         self.dologicanalyzer = False
         self.rolltrigger=True #roll the trigger
         self.ser.tellrolltrig(self.rolltrigger)
@@ -38,28 +38,28 @@ class HaasoscopeStateMachine(object):
             num_samples=self.num_samples,
             max10adcchans=max10adcchans)
         self.downsample=2 #adc speed reduction, log 2... so 0 (none), 1(factor 2), 2(factor 4), etc.
-        self.gui.set_variables(num_samples=self.num_samples, downsample=self.downsample, num_board=num_board,num_chan_per_board=num_chan_per_board)
+        self.gui.set_variables(num_samples=self.num_samples, downsample=self.downsample, HAAS_NUM_BOARD=HAAS_NUM_BOARD,num_chan_per_board=num_chan_per_board)
         self.dolockin=False # read lockin info
-        self.dooversample=np.zeros(num_board*num_chan_per_board, dtype=int) # 1 is oversampling, 0 is no oversampling, 9 is over-oversampling
+        self.dooversample=np.zeros(HAAS_NUM_BOARD*num_chan_per_board, dtype=int) # 1 is oversampling, 0 is no oversampling, 9 is over-oversampling
         self.maxdownsample=15 # slowest I can run
         self.telldownsample(self.downsample)
         self.uniqueID=[]
         self.getIDs()
         xscale =  self.num_samples/2.0*(1000.0*pow(2,self.downsample)/self.clkrate)
-        self.lowdaclevel=np.ones(num_board*num_chan_per_board)*2050 # these hold the user set levels for each gain combination
-        self.highdaclevel=np.ones(num_board*num_chan_per_board)*2800
-        self.lowdaclevelsuper=np.ones(num_board*num_chan_per_board)*120
-        self.highdaclevelsuper=np.ones(num_board*num_chan_per_board)*50
-        self.lowdaclevelac=np.ones(num_board*num_chan_per_board)*2250 # these hold the user set levels for each gain combination in ac coupling mode
-        self.highdaclevelac=np.ones(num_board*num_chan_per_board)*4600
-        self.lowdaclevelsuperac=np.ones(num_board*num_chan_per_board)*2300
-        self.highdaclevelsuperac=np.ones(num_board*num_chan_per_board)*4600
-        self.chanlevel=np.ones(num_board*num_chan_per_board)*self.lowdaclevel # the current level for each channel, initially set to lowdaclevel (x1)
-        self.gain=np.ones(num_board*num_chan_per_board, dtype=int) # 1 is low gain, 0 is high gain (x10)
-        self.supergain=np.ones(num_board*num_chan_per_board, dtype=int) # 1 is normal gain, 0 is super gain (x100)
-        self.acdc=np.ones(num_board*num_chan_per_board, dtype=int) # 1 is dc, 0 is ac
-        self.trigsactive=np.ones(num_board*num_chan_per_board, dtype=int) # 1 is triggering on that channel, 0 is not triggering on it
-        self.dooversample=np.zeros(num_board*num_chan_per_board, dtype=int) # 1 is oversampling, 0 is no oversampling, 9 is over-oversampling
+        self.lowdaclevel=np.ones(HAAS_NUM_BOARD*num_chan_per_board)*2050 # these hold the user set levels for each gain combination
+        self.highdaclevel=np.ones(HAAS_NUM_BOARD*num_chan_per_board)*2800
+        self.lowdaclevelsuper=np.ones(HAAS_NUM_BOARD*num_chan_per_board)*120
+        self.highdaclevelsuper=np.ones(HAAS_NUM_BOARD*num_chan_per_board)*50
+        self.lowdaclevelac=np.ones(HAAS_NUM_BOARD*num_chan_per_board)*2250 # these hold the user set levels for each gain combination in ac coupling mode
+        self.highdaclevelac=np.ones(HAAS_NUM_BOARD*num_chan_per_board)*4600
+        self.lowdaclevelsuperac=np.ones(HAAS_NUM_BOARD*num_chan_per_board)*2300
+        self.highdaclevelsuperac=np.ones(HAAS_NUM_BOARD*num_chan_per_board)*4600
+        self.chanlevel=np.ones(HAAS_NUM_BOARD*num_chan_per_board)*self.lowdaclevel # the current level for each channel, initially set to lowdaclevel (x1)
+        self.gain=np.ones(HAAS_NUM_BOARD*num_chan_per_board, dtype=int) # 1 is low gain, 0 is high gain (x10)
+        self.supergain=np.ones(HAAS_NUM_BOARD*num_chan_per_board, dtype=int) # 1 is normal gain, 0 is super gain (x100)
+        self.acdc=np.ones(HAAS_NUM_BOARD*num_chan_per_board, dtype=int) # 1 is dc, 0 is ac
+        self.trigsactive=np.ones(HAAS_NUM_BOARD*num_chan_per_board, dtype=int) # 1 is triggering on that channel, 0 is not triggering on it
+        self.dooversample=np.zeros(HAAS_NUM_BOARD*num_chan_per_board, dtype=int) # 1 is oversampling, 0 is no oversampling, 9 is over-oversampling
         self.selectedchannel = 0
         self.ydatarefchan=-1 #the reference channel for each board, whose ydata will be subtracted from other channels' ydata on the board
         self.domeasure = True
@@ -76,7 +76,7 @@ class HaasoscopeStateMachine(object):
         else:
             text +="\nAC coupled"
         chanonboard = self.selectedchannel%num_chan_per_board
-        theboard = num_board-1-self.selectedchannel/num_chan_per_board
+        theboard = HAAS_NUM_BOARD-1-self.selectedchannel/num_chan_per_board
         # if self.havereadswitchdata:
         #     if self.testBit(self.switchpos[theboard],chanonboard):
         #         text += ", 1M"
@@ -131,8 +131,8 @@ class HaasoscopeStateMachine(object):
         if level<0:
             print("level can't be less than 0")
             level=0
-        theboard = num_board-1-int(chan/num_chan_per_board)
-        print(("theboard:",theboard," num_board:",num_board," chan:",chan," num_chan_per_board:",num_chan_per_board))
+        theboard = HAAS_NUM_BOARD-1-int(chan/num_chan_per_board)
+        print(("theboard:",theboard," HAAS_NUM_BOARD:",HAAS_NUM_BOARD," chan:",chan," num_chan_per_board:",num_chan_per_board))
 
         chanonboard = chan%num_chan_per_board
         self.setdac(chanonboard,level,theboard)
@@ -170,7 +170,7 @@ class HaasoscopeStateMachine(object):
     def readcalib(self):
         cwd = os.getcwd()
         print(("current directory is",cwd))
-        for board in range(0,num_board):
+        for board in range(0,HAAS_NUM_BOARD):
             self.readcalibforboard(board)
 
     def readcalibforboard(self,board):
@@ -220,7 +220,7 @@ class HaasoscopeStateMachine(object):
 
     def getIDs(self):
         debug3=True
-        for n in range(num_board):
+        for n in range(HAAS_NUM_BOARD):
             rslt = self.ser.getID(n)
             num_other_bytes = 8
             if len(rslt)==num_other_bytes:
@@ -265,7 +265,7 @@ class HaasoscopeStateMachine(object):
         print(("dologicanalyzer is now",self.dologicanalyzer))
 
     def getfirmchan(self,chan):
-        theboard = num_board-1-int(chan/num_chan_per_board)
+        theboard = HAAS_NUM_BOARD-1-int(chan/num_chan_per_board)
         chanonboard = chan%num_chan_per_board
         firmchan=theboard*num_chan_per_board+chanonboard
         return firmchan # the channels are numbered differently in the firmware

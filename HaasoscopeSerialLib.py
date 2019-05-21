@@ -7,6 +7,7 @@ from struct import unpack
 import numpy as np
 import time, json, os
 import matplotlib
+from const import *
 max10adcchans = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
 
 mearm=False
@@ -274,7 +275,7 @@ class Haasoscope():
         print(("129 trigger time over/under thresh now",256*frame[1]+1*frame[2]-pow(2,12),"and usedownsamplefortriggertot is",usedownsamplefortriggertot))
 
     def getfirmchan(self,chan):
-        theboard = num_board-1-int(chan/self.num_chan_per_board)
+        theboard = HAAS_NUM_BOARD-1-int(chan/self.num_chan_per_board)
         chanonboard = chan%self.num_chan_per_board
         firmchan=theboard*self.num_chan_per_board+chanonboard
         return firmchan # the channels are numbered differently in the firmware
@@ -403,7 +404,7 @@ class Haasoscope():
             frame.append(137)
             self.ser.write(frame)
             print(("dousb toggled to",self.dousb))
-            if self.dousb: print(("rate theoretically",round(4000000./(self.num_bytes*num_board+len(max10adcchans)*self.nsamp),2),"Hz over USB2"))
+            if self.dousb: print(("rate theoretically",round(4000000./(self.num_bytes*HAAS_NUM_BOARD+len(max10adcchans)*self.nsamp),2),"Hz over USB2"))
             self.telltickstowait()
 
     def togglehighres(self):#toggle whether to do highres averaging during downsampling or not
@@ -528,7 +529,7 @@ class Haasoscope():
         elif self.dooversample[self.selectedchannel]==9: self.dooversample[self.selectedchannel]=1; print("no more over-oversampling")
 
     def resetchans(self):
-        for chan in np.arange(num_board*self.num_chan_per_board):
+        for chan in np.arange(HAAS_NUM_BOARD*self.num_chan_per_board):
             if self.gain[chan]==0:
                 self.tellswitchgain(chan) # set all gains back to low gain
             # if  self.trigsactive[chan]==0:
@@ -587,13 +588,13 @@ class Haasoscope():
 
     def setacdc(self):
         chan=self.selectedchannel
-        theboard = num_board-1-int(chan/self.num_chan_per_board)
+        theboard = HAAS_NUM_BOARD-1-int(chan/self.num_chan_per_board)
         chanonboard = chan%self.num_chan_per_board
         print(("toggling acdc for chan",chan,"which is chan",chanonboard,"on board",theboard))
         self.acdc[int(chan)] = not self.acdc[int(chan)]
         self.b20= int('00',16)  # shdn (set first char to 0 to turn on) / ac coupling (set second char to f for DC, 0 for AC)
         for c in range(0,4):
-            realchan = (num_board-1-theboard)*self.num_chan_per_board+c
+            realchan = (HAAS_NUM_BOARD-1-theboard)*self.num_chan_per_board+c
             if self.acdc[int(realchan)]:
                 self.b20 = self.toggleBit(self.b20,int(c)) # 1 is dc, 0 is ac
                 if self.db: print(("toggling bit",c,"for chan",realchan))
@@ -605,7 +606,7 @@ class Haasoscope():
     def storecalib(self):
         cwd = os.getcwd()
         print(("current directory is",cwd))
-        for board in range(0,num_board):
+        for board in range(0,HAAS_NUM_BOARD):
             self.storecalibforboard(board)
     def storecalibforboard(self,board):
         sc = board*self.num_chan_per_board
@@ -708,27 +709,27 @@ class Haasoscope():
         if gotonext:
             #go to the next channel, unless we're at the end of all channels
             self.autocalibchannel=self.autocalibchannel+1
-            if self.autocalibchannel==self.num_chan_per_board*num_board:
+            if self.autocalibchannel==self.num_chan_per_board*HAAS_NUM_BOARD:
                 self.autocalibgainac=self.autocalibgainac+1
                 if self.autocalibgainac==1:
                     self.autocalibchannel=0
-                    for chan in range(self.num_chan_per_board*num_board):
+                    for chan in range(self.num_chan_per_board*HAAS_NUM_BOARD):
                         self.selectedchannel=chan
                         self.setacdc()
                 elif self.autocalibgainac==2:
                     self.autocalibchannel=0
-                    for chan in range(self.num_chan_per_board*num_board):
+                    for chan in range(self.num_chan_per_board*HAAS_NUM_BOARD):
                         self.selectedchannel=chan
                         self.tellswitchgain(chan)
                 elif self.autocalibgainac==3:
                     self.autocalibchannel=0
-                    for chan in range(self.num_chan_per_board*num_board):
+                    for chan in range(self.num_chan_per_board*HAAS_NUM_BOARD):
                         self.selectedchannel=chan
                         self.setacdc()
                 else:
                     self.autocalibchannel=-1 #all done
                     self.autocalibgainac=0
-                    for chan in range(self.num_chan_per_board*num_board):
+                    for chan in range(self.num_chan_per_board*HAAS_NUM_BOARD):
                         self.selectedchannel=chan
                         self.tellswitchgain(chan)
                         if self.minfirmwareversion<15: self.togglesupergainchan(chan)
@@ -874,14 +875,14 @@ class Haasoscope():
 
     usbsermap=[]
     def makeusbsermap(self): # figure out which board is connected to which USB 2 connection
-        self.usbsermap=np.zeros(num_board, dtype=int)
-        if len(self.usbser)<num_board:
+        self.usbsermap=np.zeros(HAAS_NUM_BOARD, dtype=int)
+        if len(self.usbser)<HAAS_NUM_BOARD:
             print("Not a USB2 connection for each board!")
             return False
         if len(self.usbser)>1:
-            for usb in np.arange(num_board): self.usbser[usb].timeout=.5 # lower the timeout on the connections, temporarily
+            for usb in np.arange(HAAS_NUM_BOARD): self.usbser[usb].timeout=.5 # lower the timeout on the connections, temporarily
             foundusbs=[]
-            for bn in np.arange(num_board):
+            for bn in np.arange(HAAS_NUM_BOARD):
                 frame=[]
                 frame.append(100)
                 frame.append(10+bn)
@@ -896,7 +897,7 @@ class Haasoscope():
                             break # already found which board this usb connection is used for, so bail out
                         #else: print "   got the wrong nbytes for board",bn,"from usb",usb
                     #else: print "   already know what usb",usb,"is for"
-            for usb in np.arange(num_board): self.usbser[usb].timeout=self.sertimeout # put back the timeout on the connections
+            for usb in np.arange(HAAS_NUM_BOARD): self.usbser[usb].timeout=self.sertimeout # put back the timeout on the connections
         print(("usbsermap is",self.usbsermap))
         return True
 
@@ -922,9 +923,9 @@ class Haasoscope():
             db2=False #True
             if db2: print((byte_array[1:11]))
             self.ydata=np.reshape(byte_array,(self.num_chan_per_board,self.num_samples))
-            # if self.dooversample[self.num_chan_per_board*(num_board-board-1)]: self.oversample(0,2)
-            # if self.dooversample[self.num_chan_per_board*(num_board-board-1)+1]: self.oversample(1,3)
-            # if self.dooversample[self.num_chan_per_board*(num_board-board-1)]==9: self.overoversample(0,1)
+            # if self.dooversample[self.num_chan_per_board*(HAAS_NUM_BOARD-board-1)]: self.oversample(0,2)
+            # if self.dooversample[self.num_chan_per_board*(HAAS_NUM_BOARD-board-1)+1]: self.oversample(1,3)
+            # if self.dooversample[self.num_chan_per_board*(HAAS_NUM_BOARD-board-1)]==9: self.overoversample(0,1)
             if self.average:
                 for c in np.arange(self.num_chan_per_board):
                     for i in np.arange(self.num_samples/2):
@@ -1032,14 +1033,14 @@ class Haasoscope():
 
     oldtime=time.time()
     oldtime2=time.time()
-    def getchannels(self, num_board):
+    def getchannels(self):
         if not self.autorearm:
             if self.db: print((time.time()-self.oldtime,"priming trigger"))
             frame=[]
             frame.append(100)
             self.ser.write(frame)
         self.max10adcchan=1
-        for bn in np.arange(num_board):
+        for bn in np.arange(HAAS_NUM_BOARD):
             if self.db: print((time.time()-self.oldtime,"getting board",bn))
             self.getdata(bn) #this sets all boards before this board into serial passthrough mode, so this and following calls for data will go to this board and then travel back over serial
             self.getmax10adc(bn) # get data from 1 MHz Max10 ADC channels
@@ -1071,8 +1072,8 @@ class Haasoscope():
             thetime2=time.time()
             elapsedtime=thetime2-self.oldtime2
             if elapsedtime>1.0:
-                if not self.havereadswitchdata: self.switchpos = [0] * num_board
-                for b in range(num_board): self.getswitchdata(b) #gets the dpdt switch positions
+                if not self.havereadswitchdata: self.switchpos = [0] * HAAS_NUM_BOARD
+                for b in range(HAAS_NUM_BOARD): self.getswitchdata(b) #gets the dpdt switch positions
                 self.havereadswitchdata=True
                 self.oldtime2=thetime2
         return True
@@ -1099,7 +1100,7 @@ class Haasoscope():
                             #switch 0-3 is 50/1M Ohm termination on channels 0-3, on is 1M, off is 50
                             #switch 4-7 is super/normal gain on channels 0-3, on is super, off is normal
                             if b>=4:
-                                thechan=b-4+(num_board-board-1)*self.num_chan_per_board
+                                thechan=b-4+(HAAS_NUM_BOARD-board-1)*self.num_chan_per_board
                                 if self.supergain[thechan] and self.testBit(newswitchpos,b)>0:
                                     self.togglesupergainchan(thechan)
                                 if not self.supergain[thechan] and not self.testBit(newswitchpos,b)>0:
@@ -1107,12 +1108,12 @@ class Haasoscope():
                     self.switchpos[board] = newswitchpos
 
     #initialization
-    def init(self, num_board):
+    def init(self):
             frame=[]
             frame.append(0)
-            frame.append(20+(num_board-1))
+            frame.append(20+(HAAS_NUM_BOARD-1))
             self.ser.write(frame)
-            for b in range(num_board):
+            for b in range(HAAS_NUM_BOARD):
                 firmwareversion = self.getfirmwareversion(b)
                 if firmwareversion<self.minfirmwareversion: self.minfirmwareversion=firmwareversion
             print(("minimum firmwareversion of all boards is",self.minfirmwareversion))
@@ -1160,7 +1161,7 @@ class Haasoscope():
     #For setting up serial and USB connections
     def setup_connections(self):
         adjustedbrate=1./(1./self.brate+2.*self.serialdelaytimerwait*1.e-6/(32.*11.)) # delay of 2*serialdelaytimerwait microseconds every 32*11 bits
-        # serialrate=adjustedbrate/11./(self.num_bytes*num_board+len(max10adcchans)*self.nsamp) #including start+2stop bits
+        # serialrate=adjustedbrate/11./(self.num_bytes*HAAS_NUM_BOARD+len(max10adcchans)*self.nsamp) #including start+2stop bits
         # print(("rate theoretically",round(serialrate,2),"Hz over serial"))
         ports = list(serial.tools.list_ports.comports()); ports.sort(reverse=True)
         autofindusbports = len(self.usbport)==0

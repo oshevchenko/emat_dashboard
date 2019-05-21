@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import numpy as np
+from const import *
 
 class EmatPage(tk.Frame) :
     keyResample=False
@@ -175,14 +176,14 @@ class EmatPage(tk.Frame) :
 
     def on_launch_draw(self, xscale, text):
         plt.ion() #turn on interactive mode
-        self.nlines = self.egs.num_chan_per_board*self.egs.num_board+len(self.egs.max10adcchans)
+        self.nlines = self.egs.num_chan_per_board*HAAS_NUM_BOARD+len(self.egs.max10adcchans)
         if self.db: print(("nlines=",self.nlines))
         for l in np.arange(self.nlines):
-            maxchan=l-self.egs.num_chan_per_board*self.egs.num_board
+            maxchan=l-self.egs.num_chan_per_board*HAAS_NUM_BOARD
             c=(0,0,0)
             if maxchan>=0: # these are the slow ADC channels
-                if self.egs.num_board>1:
-                    board = int(self.egs.num_board-1-self.egs.max10adcchans[maxchan][0])
+                if HAAS_NUM_BOARD>1:
+                    board = int(HAAS_NUM_BOARD-1-self.egs.max10adcchans[maxchan][0])
                     if board%4==0: c=(1-0.1*maxchan,0,0)
                     if board%4==1: c=(0,1-0.1*maxchan,0)
                     if board%4==2: c=(0,0,1-0.1*maxchan)
@@ -192,7 +193,7 @@ class EmatPage(tk.Frame) :
                 line, = self.ax.plot([],[], '-', label=str(self.egs.max10adcchans[maxchan]), color=c, linewidth=0.5, alpha=.5)
             else: # these are the fast ADC channels
                 chan=l%4
-                if self.egs.num_board>1:
+                if HAAS_NUM_BOARD>1:
                     board=l/4
                     if board%4==0: c=(1-0.2*chan,0,0)
                     if board%4==1: c=(0,1-0.2*chan,0)
@@ -278,7 +279,7 @@ class EmatPage(tk.Frame) :
             else: self.selectedlegline.set_linewidth(1.0)
         legline.set_linewidth(4.0)
         self.selectedlegline=legline; self.selectedorigline=origline # remember them so we can set it back to normal later when we pick something else
-        if channum < self.egs.num_board*self.egs.num_chan_per_board: # it's an ADC channel (not a max10adc channel or other thing)
+        if channum < HAAS_NUM_BOARD*self.egs.num_chan_per_board: # it's an ADC channel (not a max10adc channel or other thing)
             if self.db: print("picked a real ADC channel")
             msg = mq.Message({'id': 4, 'selectedchannel': channum})
             self.mq_publisher.publish(msg)
@@ -288,7 +289,7 @@ class EmatPage(tk.Frame) :
 
         else:
             if self.db: print("picked a max10 ADC channel")
-            self.selectedmax10channel=channum - num_board*num_chan_per_board
+            self.selectedmax10channel=channum - HAAS_NUM_BOARD*num_chan_per_board
         # self.drawtext()
 
     def onpick(self,event):
@@ -327,7 +328,7 @@ class EmatPage(tk.Frame) :
     def on_running(self, theydata, board): #update data for main plot for a board
         if board<0: #hack to tell it the max10adc channel
             chantodraw=-board-1 #draw chan 0 first (when board=-1)
-            posi=chantodraw+self.egs.num_board*self.egs.num_chan_per_board
+            posi=chantodraw+HAAS_NUM_BOARD*self.egs.num_chan_per_board
             if self.db: print((time.time()-self.oldtime,"drawing line",posi))
             #if self.db: print "ydata[0]=",theydata[0]
             xdatanew=(self.xsampdata-self.egs.num_samples/2.)*(1000.0*pow(2,max(self.downsample,0))/self.egs.clkrate/self.xscaling) #downsample isn't less than 0 for xscaling
@@ -349,7 +350,7 @@ class EmatPage(tk.Frame) :
                     self.lines[l+self.logicline1].set_xdata(xdatanew)
                     self.lines[l+self.logicline1].set_ydata(ydatanew)
             for l in np.arange(self.egs.num_chan_per_board): #this draws the 4 fast ADC data channels for each board
-                thechan=l+(self.egs.num_board-board-1)*self.egs.num_chan_per_board
+                thechan=l+(HAAS_NUM_BOARD-board-1)*self.egs.num_chan_per_board
                 #if self.db: print time.time()-self.oldtime,"drawing adc line",thechan
                 if len(theydata)<=l: print(("don't have channel",l,"on board",board)); return
                 # if self.egs.dooversample[thechan]==1: # account for oversampling
@@ -445,11 +446,11 @@ class EmatPage(tk.Frame) :
         self.xdata=np.arange(self.num_samples)
         self.xdata2=np.arange(self.num_samples*2) # for oversampling
         self.xdata4=np.arange(self.num_samples*4) # for over-oversampling
-        self.xydata=np.empty([self.num_chan_per_board*self.num_board,2,self.num_samples-1],dtype=float)
-        self.Vrms=np.zeros(self.num_board*self.num_chan_per_board, dtype=float) # the Vrms for each channel
-        self.Vmean=np.zeros(self.num_board*self.num_chan_per_board, dtype=float) # the Vmean for each channel
-        self.gain=np.ones(self.num_board*self.num_chan_per_board, dtype=int) # 1 is low gain, 0 is high gain (x10)
-        self.supergain=np.ones(self.num_board*self.num_chan_per_board, dtype=int) # 1 is normal gain, 0 is super gain (x100)
+        self.xydata=np.empty([self.num_chan_per_board*self.HAAS_NUM_BOARD,2,self.num_samples-1],dtype=float)
+        self.Vrms=np.zeros(self.HAAS_NUM_BOARD*self.num_chan_per_board, dtype=float) # the Vrms for each channel
+        self.Vmean=np.zeros(self.HAAS_NUM_BOARD*self.num_chan_per_board, dtype=float) # the Vmean for each channel
+        self.gain=np.ones(self.HAAS_NUM_BOARD*self.num_chan_per_board, dtype=int) # 1 is low gain, 0 is high gain (x10)
+        self.supergain=np.ones(self.HAAS_NUM_BOARD*self.num_chan_per_board, dtype=int) # 1 is normal gain, 0 is super gain (x100)
 
     #[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
      # 0 would skip 2**0=1 byte each time, i.e. send all bytes, 10 is good for lockin mode (sends just 4 samples)

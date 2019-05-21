@@ -9,7 +9,7 @@ from serial import SerialException
 import HaasoscopeStateMachine
 from HaasoscopeStateMachine import HaasoscopeStateMachine as HSM
 #Some options
-#HaasoscopeLib.num_board = 2 # Number of Haasoscope boards to read out (default is 1)
+
 #HaasoscopeLib.ram_width = 12 # width in bits of sample ram to use (e.g. 9==512 samples (default), 12(max)==4096 samples) (min is 2)
 #HaasoscopeLib.max10adcchans = [(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp # default is none, []
 import matplotlib.pyplot as plt
@@ -53,7 +53,7 @@ plt.rcParams['keymap.xscale'] = ''
 plt.rcParams['keymap.all_axes'] = ''
 UPDATE_RATE = 10
 
-# num_board = 1 # Number of Haasoscope boards to read out
+
 # ram_width = 9 # width in bits of sample ram to use (e.g. 9==512 samples, 12(max)==4096 samples)
 # max10adcchans = []#[(0,110),(0,118),(1,110),(1,118)] #max10adc channels to draw (board, channel on board), channels: 110=ain1, 111=pin6, ..., 118=pin14, 119=temp
 # sendincrement=0 # 0 would skip 2**0=1 byte each time, i.e. send all bytes, 10 is good for lockin mode (sends just 4 samples)
@@ -116,7 +116,7 @@ class EmatGUI(tk.Tk):
         self.hsl = HaasoscopeSerialLib.Haasoscope()
         self.hsl.construct()
         if not self.hsl.setup_connections(): sys.exit()
-        if not self.hsl.init(1): sys.exit()
+        if not self.hsl.init(): sys.exit()
         # self.hsl.on_launch()
         # egs.downsample=self.hsl.downsample
         # egs.min_y = self.hsl.min_y
@@ -153,7 +153,7 @@ class EmatGUI(tk.Tk):
 
     def updater(self):
         # print("Tick.")
-        if not self.hsl.getchannels(1): print("Tick.")
+        if not self.hsl.getchannels(): print("Tick.")
         self.hsm.process_queue()
         self.after(UPDATE_RATE, self.updater)
 
@@ -161,10 +161,8 @@ class EmatGUI(tk.Tk):
 
 
 
-egs=EmatGlobalStruct(num_board=1, ram_width=9, max10adcchans=[], sendincrement=0, num_chan_per_board=4, clkrate=125.0)
-# egs=EmatGlobalStruct(num_board=1, ram_width=9, sendincrement=0, num_chan_per_board=4)
-# egs=EmatGlobalStruct(num_board=1, ram_width=9, sendincrement=0, num_chan_per_board=4)
-print(("egs.num_board=",egs.num_board))
+egs=EmatGlobalStruct(ram_width=9, max10adcchans=[], sendincrement=0, num_chan_per_board=4, clkrate=125.0)
+
 print(("egs.num_samples=",egs.num_samples))
 # d = HaasoscopeSerialLib.Haasoscope()
 # d.construct()
