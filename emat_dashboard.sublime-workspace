@@ -35,6 +35,70 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "HaasoscopeStateMachine.py",
+			"settings":
+			{
+				"buffer_size": 15471,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "HaasoscopeSerialLib.py",
+			"settings":
+			{
+				"buffer_size": 57971,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "HaasoscopeLib.py",
+			"settings":
+			{
+				"buffer_size": 111312,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "ematpage.py",
+			"settings":
+			{
+				"buffer_size": 33739,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Structure.py",
+			"settings":
+			{
+				"buffer_size": 1041,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "emat_app.py",
+			"settings":
+			{
+				"buffer_size": 6090,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "const.py",
+			"settings":
+			{
+				"buffer_size": 987,
+				"encoding": "UTF-8",
+				"line_ending": "Unix",
+				"name": "HAAS_NUM_BOARD = 1"
+			}
+		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -70,8 +134,14 @@
 		"side_bar_visible": false,
 		"status_bar_visible": false
 	},
+	"expanded_folders":
+	[
+		"/home/oleksandr/workspace/emat/software/dashboard"
+	],
 	"file_history":
 	[
+		"/home/oleksandr/workspace/dual-android-optee/optee-client-build.log",
+		"/home/oleksandr/workspace/dual-android-optee/optee-os-failed-build.log",
 		"/home/oleksandr/workspace/Haasoscope/software/HaasoscopeLib.py",
 		"/home/oleksandr/workspace/Haasoscope/software/serial_read.py",
 		"/home/oleksandr/workspace/emat/software/dashboard/HaasoscopeLib.py",
@@ -197,13 +267,11 @@
 		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/defconfig",
 		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/android2-kernel/Makefile",
 		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/integration/config/coqoshv-guest-config-r8a7795-salvator-xs.xml",
-		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/coqoshv-add-virtual-uart-and-remove-physical-scif-access.dtsi",
-		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/coqoshv-remove-cpu-idle-states-property-from-all-cpus.dtsi",
-		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/coqoshv-remove-usb2-access.dtsi"
+		"/home/oleksandr/workspace/coqos_double_android/projects/prj-rcargen3-hwvirt-linux-android-coqosaros-safeic/linux1-kernel/coqoshv-add-virtual-uart-and-remove-physical-scif-access.dtsi"
 	],
 	"find":
 	{
-		"height": 39.0
+		"height": 24.0
 	},
 	"find_in_files":
 	{
@@ -214,9 +282,90 @@
 	},
 	"find_state":
 	{
-		"case_sensitive": false,
+		"case_sensitive": true,
 		"find_history":
 		[
+			"keyi2c",
+			"settriggerchan",
+			"onpress",
+			"onrelease",
+			"keyShift=",
+			"keyShift",
+			"mpl_connect",
+			"onpress",
+			"publish",
+			"sendincrement =",
+			"sendincrement=",
+			"publish",
+			"triggertimethresh",
+			"self.egs.nsamp",
+			"self.nsamp",
+			"self.nsamp=",
+			"self.nsamp =",
+			"self.nsamp",
+			"rolltrigger",
+			"self.nsamp",
+			"rolltrigger",
+			"settriggerpoint",
+			"egs",
+			"self.egs",
+			"self.clkrate",
+			"clkrate",
+			"self.egs.clkrate",
+			"clkrate",
+			"selectedchannel",
+			"self.egs.",
+			"self.downsample",
+			"downsample",
+			"self.downsample",
+			"downsample",
+			"self.egs.",
+			"self.downsample",
+			"self.num_bytes",
+			"num_bytes",
+			"self.num_bytes",
+			"self.egs.max10adcchans",
+			"max10adcchans",
+			"xscaling",
+			"clkrate",
+			"self.clkrate",
+			"xscale",
+			"self.downsample",
+			"sendincrement",
+			"Vrms",
+			"self.HAAS_NUM_BOARD",
+			"num_chan_per_board",
+			"self.num_chan_per_board",
+			"num_chan_per_board",
+			"self.egs.num_chan_per_board",
+			"self.num_chan_per_board",
+			"max10adcchans",
+			"num_chan_per_board",
+			"HAAS_NUM_SMAPLES",
+			"const",
+			"self.num_samples",
+			"num_samples",
+			"self.num_samples",
+			"num_samples",
+			"self.egs.num_samples",
+			"self.num_samples",
+			"num_samples",
+			"ram_width",
+			"max10adcchans",
+			"ram_width",
+			"num_board",
+			"self.egs.num_board",
+			"num_board",
+			"HAAS_NUM_BOARD",
+			"num_board",
+			"getfirmchan",
+			"num_board",
+			"setacdc",
+			"num_board",
+			"resetchans",
+			"num_board",
+			"HAAS_NUM_BOARD",
+			"num_board",
 			"update",
 			"update_idletasks",
 			"on_running",
@@ -263,11 +412,7 @@
 			"getfirmchan",
 			"writefirmchan",
 			"chan/num_chan_per_board",
-			"keyControl",
-			"togglechannel",
-			"toggletriggerchan",
-			"writefirmchan",
-			"encode"
+			"keyControl"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -275,24 +420,243 @@
 		"regex": false,
 		"replace_history":
 		[
+			"HAAS_NSAMP",
+			"HAAS_CLKRATE",
+			"HAAS_NUM_BYTES",
+			"HAAS_MAX10ADCCHANS",
+			"HAAS_SENDINCREMENT",
+			"HAAS_NUM_CHAN_PER_BOARD",
+			"HAAS_NUM_SMAPLES",
+			"HAAS_RAM_WIDTH",
+			"HAAS_NUM_BOARD"
 		],
 		"reverse": false,
 		"show_context": true,
 		"use_buffer2": true,
-		"whole_word": false,
+		"whole_word": true,
 		"wrap": true
 	},
 	"groups":
 	[
 		{
+			"selected": 3,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "HaasoscopeStateMachine.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15471,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								15208,
+								15208
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3370.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "HaasoscopeSerialLib.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 57971,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								19290,
+								19290
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 5860.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "HaasoscopeLib.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 111312,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								64026,
+								64026
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 17590.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "ematpage.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 33739,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								14320,
+								14320
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2789.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "Structure.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1041,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								409,
+								409
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "emat_app.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6090,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4793,
+								4793
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1545.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "const.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 987,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								987,
+								987
+							]
+						],
+						"settings":
+						{
+							"auto_name": "HAAS_NUM_BOARD = 1",
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				}
 			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 27.0
+		"height": 24.0
 	},
 	"input":
 	{
@@ -329,7 +693,7 @@
 	"project": "emat_dashboard.sublime-project",
 	"replace":
 	{
-		"height": 50.0
+		"height": 44.0
 	},
 	"save_all_on_build": true,
 	"select_file":
