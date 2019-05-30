@@ -254,10 +254,10 @@ class EmatPage(tk.Frame) :
                     else: print("oversampling settings must match between channels for XY plotting")
                 self.keyShift=False
             elif event.key=="Z": self.recorddata=True; self.recorddatachan=self.selectedchannel; self.recordedchannel=[]; print(("recorddata now",self.recorddata,"for channel",self.recorddatachan)); self.keyShift=False; return;
-            elif event.key=="right": self.telldownsample(self.downsample+1); return
-            elif event.key=="left": self.telldownsample(self.downsample-1); return
-            elif event.key=="shift+right": self.telldownsample(self.downsample+5); return
-            elif event.key=="shift+left": self.telldownsample(self.downsample-5); return
+            elif event.key=="right": self.telldownsample(DIR_RIGHT); return
+            elif event.key=="left": self.telldownsample(DIR_LEFT); return
+            elif event.key=="shift+right": self.telldownsample(DIR_RIGHT); return
+            elif event.key=="shift+left": self.telldownsample(DIR_LEFT); return
             elif event.key=="up": self.adjustvertical(DIR_UP); return
             elif event.key=="down": self.adjustvertical(DIR_DOWN); return
             elif event.key=="shift+up": self.adjustvertical(DIR_UP); return
@@ -284,7 +284,8 @@ class EmatPage(tk.Frame) :
                 print(('x=%d, y=%d, xdata=%f, ydata=%f' % (event.x, event.y, event.xdata, event.ydata)))
             except TypeError: pass
 
-    def setxaxis(self, xscale):
+    def setxaxis(self, downsample):
+        xscale =  HAAS_NUM_SAMPLES/2.0*(1000.0*pow(2, downsample)/HAAS_CLKRATE)
         if xscale<1e3:
             self.ax.set_xlabel("Time (ns)")
             self.min_x = -xscale
@@ -317,7 +318,7 @@ class EmatPage(tk.Frame) :
         #self.ax.set_autoscaley_on(True)
         self.canvas.draw()
 
-    def on_launch_draw(self, xscale, text):
+    def on_launch_draw(self, downsample, text):
         plt.ion() #turn on interactive mode
         self.nlines = HAAS_NUM_CHAN_PER_BOARD*HAAS_NUM_BOARD+len(HAAS_MAX10ADCCHANS)
         if self.db: print(("nlines=",self.nlines))
@@ -362,7 +363,7 @@ class EmatPage(tk.Frame) :
             line, = self.ax.plot([],[], '-', label="fit data", color="purple", linewidth=0.5, alpha=.5)
             self.lines.append(line)
             self.fitline1=len(self.lines)-1 # remember index where this line is
-        self.setxaxis(xscale)
+        self.setxaxis(downsample)
         self.setyaxis();
         self.ax.grid(True)
         self.vline=0
@@ -411,10 +412,13 @@ class EmatPage(tk.Frame) :
         else: self.leg.get_texts()[tp].set_color('#aFaFaF')
         self.canvas.draw()
 
-    def adjustvertical(self,direction):
+    def adjustvertical(self, direction):
         msg = mq.Message({'id': MSG_ID_ADJUST, 'direction':int(direction), 'shift': self.keyShift, 'control':self.keyControl})
         self.mq_publisher.publish(msg)
 
+    def telldownsample(self, direction):
+        msg = mq.Message({'id': MSG_ID_DOWNSAMPLE, 'direction':direction, 'shift': self.keyShift})
+        self.mq_publisher.publish(msg)
 
     def pickline(self,theline):
         # on the pick event, find the orig line corresponding to the

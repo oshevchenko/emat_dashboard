@@ -27,7 +27,6 @@ class HaasoscopeStateMachine(object):
         self.telldownsample(self.downsample)
         self.uniqueID=[]
         self.getIDs()
-        xscale =  HAAS_NUM_SAMPLES/2.0*(1000.0*pow(2,self.downsample)/HAAS_CLKRATE)
         self.lowdaclevel=np.ones(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD)*2050 # these hold the user set levels for each gain combination
         self.highdaclevel=np.ones(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD)*2800
         self.lowdaclevelsuper=np.ones(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD)*120
@@ -47,7 +46,7 @@ class HaasoscopeStateMachine(object):
         self.domeasure = True
         self.readcalib()
         text = self.chantext()
-        self.gui.on_launch_draw(xscale, text)
+        self.gui.on_launch_draw(self.downsample, text)
 
     def chantext(self):
         text ="Channel: "+str(self.selectedchannel)
@@ -237,10 +236,6 @@ class HaasoscopeStateMachine(object):
             if max(self.dooversample)>0 and ds>0: print("can't change sampling rate while oversampling - must be fastest!"); return False
             if ds>self.maxdownsample: print(("downsample >",self.maxdownsample,"doesn't work well... I get bored running that slow!")); return False
             self.ser.telldownsample(ds)
-            # frame=[]
-            # frame.append(124)
-            # frame.append(ds)
-            # self.ser.write(frame)
             self.downsample=ds
             if self.db: print(("downsample is",self.downsample))
             if self.dolockin:
@@ -253,7 +248,7 @@ class HaasoscopeStateMachine(object):
             else:
                 self.ser.telllockinnumtoshift(0) # tells the FPGA to not send lockin info
             self.telltickstowait()
-        if hasattr(self,'ax'): self.setxaxis(self.ax,self.figure)
+        self.gui.setxaxis(self.downsample)
         return True # successful (parameter within OK range)
 
     def togglelogicanalyzer(self):
@@ -316,5 +311,17 @@ class HaasoscopeStateMachine(object):
                 shift = message_content['shift']
                 control = message_content['control']
                 self.adjustvertical(direction, shift, control)
+            elif msg_id==MSG_ID_DOWNSAMPLE:
+                direction = message_content['direction']
+                shift = message_content['shift']
+                if shift:
+                    increment = 5
+                else:
+                    increment = 1
+                if direction==DIR_LEFT:
+                    downsample = self.downsample-increment;
+                else:
+                    downsample = self.downsample+increment;
+                self.telldownsample(downsample)
 
         pass
