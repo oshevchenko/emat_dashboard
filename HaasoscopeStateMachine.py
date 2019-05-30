@@ -123,6 +123,22 @@ class HaasoscopeStateMachine(object):
         # if not self.firstdrawtext: self.drawtext()
         if self.db: print(("DAC level set for channel",chan,"to",level,"which is chan",chanonboard,"on board",theboard))
 
+    def rememberdacvalue(self):
+        #remember current dac level for the future to the right daclevel, depending on other settings
+        if self.gain[self.selectedchannel]: # low gain
+            if self.supergain[self.selectedchannel]:
+                if self.acdc[self.selectedchannel]: self.lowdaclevel[self.selectedchannel]=self.chanlevel[self.selectedchannel]
+                else: self.lowdaclevelac[self.selectedchannel]=self.chanlevel[self.selectedchannel]
+            else: #supergain
+                if self.acdc[self.selectedchannel]: self.lowdaclevelsuper[self.selectedchannel]=self.chanlevel[self.selectedchannel] #dc super gain
+                else: self.lowdaclevelsuperac[self.selectedchannel]=self.chanlevel[self.selectedchannel]
+        else: # high gain
+            if self.supergain[self.selectedchannel]:
+                if self.acdc[self.selectedchannel]: self.highdaclevel[self.selectedchannel]=self.chanlevel[self.selectedchannel]
+                else: self.highdaclevelac[self.selectedchannel]=self.chanlevel[self.selectedchannel]
+            else: #supergain
+                if self.acdc[self.selectedchannel]: self.highdaclevelsuper[self.selectedchannel]=self.chanlevel[self.selectedchannel] #dc super gain
+                else: self.highdaclevelsuperac[self.selectedchannel]=self.chanlevel[self.selectedchannel]
 
     def setdacvalue(self):
         #set current dac level to the remembered value, depending on other settings
@@ -252,13 +268,29 @@ class HaasoscopeStateMachine(object):
         firmchan=theboard*HAAS_NUM_CHAN_PER_BOARD+chanonboard
         return firmchan # the channels are numbered differently in the firmware
 
+    def adjustvertical(self, direction, shift, control, amount=10):
+        if shift:
+            amount*=5
+        else:
+            if control: amount/=10
+        #print "amount is",amount
+        if self.gain[self.selectedchannel]: amount*=10 #low gain
+        if self.supergain[self.selectedchannel]==0 and self.acdc[self.selectedchannel]: amount=max(1,amount/10) #super gain
+        #print "now amount is",amount
+        if direction==DIR_UP:
+             self.chanlevel[self.selectedchannel] = self.chanlevel[self.selectedchannel] - amount
+        else:
+             self.chanlevel[self.selectedchannel] = self.chanlevel[self.selectedchannel] + amount
+        self.rememberdacvalue()
+        self.setdacvalue()
+
     def process_queue(self):
         while True:
             message = self.mq_subscriber.consume()
             if not message: break
             message_content = message.get_content_body()
             msg_id = message_content['id']
-            print ("message id:", msg_id)
+            # print ("message id:", msg_id)
             if msg_id==MSG_ID_YDATA:
                 ydata = message_content['ydata']
                 bn = message_content['bn']
@@ -279,5 +311,10 @@ class HaasoscopeStateMachine(object):
                 firmchan=self.getfirmchan(channel)
                 self.ser.settriggerchan(firmchan)
                 if self.db: print(("Trigger toggled for channel",channel))
+            elif msg_id==MSG_ID_ADJUST:
+                direction = message_content['direction']
+                shift = message_content['shift']
+                control = message_content['control']
+                self.adjustvertical(direction, shift, control)
 
         pass

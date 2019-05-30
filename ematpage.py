@@ -258,12 +258,12 @@ class EmatPage(tk.Frame) :
             elif event.key=="left": self.telldownsample(self.downsample-1); return
             elif event.key=="shift+right": self.telldownsample(self.downsample+5); return
             elif event.key=="shift+left": self.telldownsample(self.downsample-5); return
-            elif event.key=="up": self.adjustvertical(True); return
-            elif event.key=="down": self.adjustvertical(False); return
-            elif event.key=="shift+up": self.adjustvertical(True); return
-            elif event.key=="shift+down": self.adjustvertical(False); return
-            elif event.key=="ctrl+up": self.adjustvertical(True); return
-            elif event.key=="ctrl+down": self.adjustvertical(False); return
+            elif event.key=="up": self.adjustvertical(DIR_UP); return
+            elif event.key=="down": self.adjustvertical(DIR_DOWN); return
+            elif event.key=="shift+up": self.adjustvertical(DIR_UP); return
+            elif event.key=="shift+down": self.adjustvertical(DIR_DOWN); return
+            elif event.key=="ctrl+up": self.adjustvertical(DIR_UP); return
+            elif event.key=="ctrl+down": self.adjustvertical(DIR_DOWN); return
             elif event.key=="?": self.togglelogicanalyzer(); return
             elif event.key=="d": self.tellminidisplaychan(self.selectedchannel);return
             elif event.key=="R": self.keyResample=True;print("now enter amount to sinc resample (0-9)");return
@@ -410,6 +410,10 @@ class EmatPage(tk.Frame) :
         if trigactive: self.leg.get_texts()[tp].set_color('#000000')
         else: self.leg.get_texts()[tp].set_color('#aFaFaF')
         self.canvas.draw()
+
+    def adjustvertical(self,direction):
+        msg = mq.Message({'id': MSG_ID_ADJUST, 'direction':int(direction), 'shift': self.keyShift, 'control':self.keyControl})
+        self.mq_publisher.publish(msg)
 
 
     def pickline(self,theline):
