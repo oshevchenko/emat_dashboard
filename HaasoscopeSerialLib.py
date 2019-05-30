@@ -102,7 +102,6 @@ class Haasoscope():
         self.domaindrawing=True # whether to update the main window data and redraw it
         self.selectedchannel=0 #what channel some actions apply to
         self.selectedmax10channel=0 #what max10 channel is selected
-        self.autorearm=False #whether to automatically rearm the trigger after each event, or wait for a signal from software
         self.dohighres=False #whether to do averaging during downsampling or not (turned on by default during startup, and off again during shutdown)
         self.useexttrig=False #whether to use the external trigger input
         self.autocalibchannel=-1 #which channel we are auto-calibrating
@@ -435,8 +434,6 @@ class Haasoscope():
         # prime the trigger one last time
         frame.append(100)
         self.ser.write(frame)
-        self.autorearm = not self.autorearm
-        print(("Trigger auto rearm now",self.autorearm))
         if self.db: print((time.time()-self.oldtime,"priming trigger"))
 
     def getID(self, n):
@@ -1033,12 +1030,14 @@ class Haasoscope():
 
     oldtime=time.time()
     oldtime2=time.time()
-    def getchannels(self):
-        if not self.autorearm:
+
+    def rearm(self):
             if self.db: print((time.time()-self.oldtime,"priming trigger"))
             frame=[]
             frame.append(100)
             self.ser.write(frame)
+
+    def getchannels(self):
         self.max10adcchan=1
         for bn in np.arange(HAAS_NUM_BOARD):
             if self.db: print((time.time()-self.oldtime,"getting board",bn))
@@ -1148,7 +1147,7 @@ class Haasoscope():
         try:
             self.setbacktoserialreadout()
             self.resetchans()
-            if self.autorearm: self.toggleautorearm()
+            # if self.autorearm: self.toggleautorearm()
             if self.dohighres: self.togglehighres()
             if self.useexttrig: self.toggleuseexttrig()
             if self.dologicanalyzer: self.setlogicanalyzer(False)

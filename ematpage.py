@@ -404,6 +404,9 @@ class EmatPage(tk.Frame) :
         self.drawtext(text)
         # self.canvas.mpl_connect('close_event', self.handle_main_close)
         self.canvas.draw()
+    def toggleautorearm(self):
+        msg = mq.Message({'id': MSG_ID_TOGGLE_AUTO_REARM})
+        self.mq_publisher.publish(msg)
 
     def settriggerchan(self, tp, trigactive):
         # tell it to trigger or not trigger on a given channel

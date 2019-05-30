@@ -44,6 +44,7 @@ class HaasoscopeStateMachine(object):
         self.selectedchannel = 0
         self.ydatarefchan=-1 #the reference channel for each board, whose ydata will be subtracted from other channels' ydata on the board
         self.domeasure = True
+        self.autorearm=False #whether to automatically rearm the trigger after each event, or wait for a signal from software
         self.readcalib()
         text = self.chantext()
         self.gui.on_launch_draw(self.downsample, text)
@@ -280,6 +281,9 @@ class HaasoscopeStateMachine(object):
         self.setdacvalue()
 
     def process_queue(self):
+        if not self.autorearm:
+            self.ser.rearm()
+
         while True:
             message = self.mq_subscriber.consume()
             if not message: break
@@ -323,5 +327,9 @@ class HaasoscopeStateMachine(object):
                 else:
                     downsample = self.downsample+increment;
                 self.telldownsample(downsample)
+            elif msg_id==MSG_ID_TOGGLE_AUTO_REARM:
+                self.autorearm = not self.autorearm
+                print(("Autorearm is now:",self.autorearm))
+                self.ser.toggleautorearm()
 
         pass
