@@ -103,7 +103,6 @@ class Haasoscope():
         self.selectedchannel=0 #what channel some actions apply to
         self.selectedmax10channel=0 #what max10 channel is selected
         self.dohighres=False #whether to do averaging during downsampling or not (turned on by default during startup, and off again during shutdown)
-        self.useexttrig=False #whether to use the external trigger input
         self.autocalibchannel=-1 #which channel we are auto-calibrating
         self.autocalibgainac=0 #which stage of gain and acdc we are auto-calibrating
         self.recordedchannellength=250 #number of events to overlay in the 2d persist plot
@@ -417,8 +416,6 @@ class Haasoscope():
             frame=[]
             frame.append(144)
             self.ser.write(frame)
-            self.useexttrig = not self.useexttrig
-            print(("useexttrig is",self.useexttrig))
 
     def settriggerchan(self,firmchan):
         #tell it to trigger or not trigger on a given channel
@@ -1149,7 +1146,7 @@ class Haasoscope():
             self.resetchans()
             # if self.autorearm: self.toggleautorearm()
             if self.dohighres: self.togglehighres()
-            if self.useexttrig: self.toggleuseexttrig()
+            # if self.useexttrig: self.toggleuseexttrig()
             if self.dologicanalyzer: self.setlogicanalyzer(False)
             if self.serport!="" and hasattr(self,'ser'):
                 self.shutdownadcs()

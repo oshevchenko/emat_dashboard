@@ -45,6 +45,7 @@ class HaasoscopeStateMachine(object):
         self.ydatarefchan=-1 #the reference channel for each board, whose ydata will be subtracted from other channels' ydata on the board
         self.domeasure = True
         self.autorearm=False #whether to automatically rearm the trigger after each event, or wait for a signal from software
+        self.useexttrig=False #whether to use the external trigger input
         self.readcalib()
         text = self.chantext()
         self.gui.on_launch_draw(self.downsample, text)
@@ -331,20 +332,23 @@ class HaasoscopeStateMachine(object):
                 self.autorearm = not self.autorearm
                 print(("Autorearm is now:",self.autorearm))
                 self.ser.toggleautorearm()
+            elif msg_id==MSG_ID_TOGGLE_EXT_TRIG:
+                self.useexttrig = not self.useexttrig
+                print(("Ext. trigg is now:",self.useexttrig))
+                self.ser.toggleuseexttrig()
+
         pass
 
     def cleanup(self):
         try:
-            if self.autorearm:
-                self.ser.toggleautorearm()
-                self.autorearm = not self.autorearm
-            print(("Cleanup! Autorearm is:",self.autorearm))
+            if self.autorearm: self.ser.toggleautorearm()
+            if self.useexttrig: self.ser.toggleuseexttrig()
+
             # TODO:
             # self.setbacktoserialreadout()
             # self.resetchans()
             # if self.autorearm: self.toggleautorearm()
             # if self.dohighres: self.togglehighres()
-            # if self.useexttrig: self.toggleuseexttrig()
             # if self.dologicanalyzer: self.setlogicanalyzer(False)
             # if self.serport!="" and hasattr(self,'ser'):
             #     self.shutdownadcs()
