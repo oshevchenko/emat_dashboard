@@ -336,6 +336,10 @@ class HaasoscopeStateMachine(object):
                 self.useexttrig = not self.useexttrig
                 print(("Ext. trigg is now:",self.useexttrig))
                 self.ser.toggleuseexttrig()
+            elif msg_id==MSG_ID_TOGGLE_ROLL_TRIG:
+                self.rolltrigger = not self.rolltrigger;
+                print("Roll trigger is now:",self.rolltrigger)
+                self.ser.tellrolltrig(self.rolltrigger)
 
         pass
 

@@ -129,9 +129,10 @@ class Haasoscope():
 
     def tellrolltrig(self,rt):
         #tell them to roll the trigger (a self-trigger each ~second), or not
+        self.rollingtrigger = rt
         frame=[]
-        if rt: frame.append(101); self.rollingtrigger=True; print("rolling trigger")
-        else:  frame.append(102); self.rollingtrigger=False; print("not rolling trigger")
+        if rt: frame.append(101)
+        else:  frame.append(102)
         self.ser.write(frame)
 
     def tellsamplesmax10adc(self, nsamp):

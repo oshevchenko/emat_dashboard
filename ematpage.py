@@ -212,7 +212,7 @@ class EmatPage(tk.Frame) :
                 else:
                     self.leveltemp=self.leveltemp+event.key
                     print(("leveltemp",self.leveltemp)); return
-            elif event.key=="r": self.rolltrigger=not self.rolltrigger; self.tellrolltrig(self.rolltrigger);return
+            elif event.key=="r": self.mq_publisher.publish(mq.Message({'id': MSG_ID_TOGGLE_ROLL_TRIG})); return
             elif event.key=="p": self.paused = not self.paused;print(("paused",self.paused)); return
             elif event.key=="P": self.getone = not self.getone;print(("get one",self.getone)); return
             elif event.key=="a": self.average = not self.average;print(("average",self.average)); return
