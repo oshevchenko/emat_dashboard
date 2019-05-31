@@ -173,8 +173,8 @@ class EmatPage(tk.Frame) :
                 try:
                     self.sincresample=int(event.key)
                     print(("resample now",self.sincresample))
-                    if self.sincresample>0: self.xydata=np.empty([num_chan_per_board*HAAS_NUM_BOARD,2,self.sincresample*(self.num_samples-1)],dtype=float)
-                    else: self.xydata=np.empty([num_chan_per_board*HAAS_NUM_BOARD,2,1*(self.num_samples-1)],dtype=float)
+                    if self.sincresample>0: self.xydata=np.empty([num_chan_per_board*HAAS_NUM_BOARD,2,self.sincresample*(HAAS_NUM_SAMPLES-1)],dtype=float)
+                    else: self.xydata=np.empty([num_chan_per_board*HAAS_NUM_BOARD,2,1*(HAAS_NUM_SAMPLES-1)],dtype=float)
                     self.prepareforsamplechange();
                     self.keyResample=False; return
                 except ValueError: pass
@@ -377,7 +377,7 @@ class EmatPage(tk.Frame) :
         otherline.set_visible(False)
         self.otherlines.append(otherline)
         if self.db: print(("drew lines in launch",len(self.otherlines)))
-        # self.canvas.mpl_connect('button_press_event', self.onclick)
+        self.canvas.mpl_connect('button_press_event', self.onclick)
         self.canvas.mpl_connect('key_press_event', self.onpress)
         self.canvas.mpl_connect('key_release_event', self.onrelease)
         self.canvas.mpl_connect('pick_event', self.onpick)
@@ -456,6 +456,34 @@ class EmatPage(tk.Frame) :
             if self.keyControl: self.togglechannel(event.artist)
             else:self.pickline(event.artist)
             self.canvas.draw()
+
+    def onclick(self,event):
+        try:
+            if event.button==1: #left click
+                pass
+            if event.button==2: #middle click
+                if self.keyShift:# if shift is held, turn off threshold2
+                    self.settriggerthresh2(0)
+                    self.otherlines[2].set_visible(False)
+                else:
+                    self.hline2 = event.ydata
+                    self.settriggerthresh2(int(  self.hline2/(self.yscale/256.) + 128  ))
+                    self.otherlines[2].set_visible(True) # starts off being hidden, so now show it!
+                    self.otherlines[2].set_data( [self.min_x, self.max_x], [self.hline2, self.hline2] )
+            if event.button==3: #right click
+
+                msg = mq.Message({'id': MSG_ID_MOUSE_R_CLICK, 'event':event, 'xscaling':self.xscaling, 'yscale':self.yscale})
+                self.mq_publisher.publish(msg)
+
+                self.vline = event.xdata
+                self.otherlines[0].set_visible(True)
+                self.otherlines[0].set_data( [self.vline, self.vline], [self.min_y, self.max_y] ) # vertical line showing trigger time
+                self.hline = event.ydata
+                self.otherlines[1].set_data( [self.min_x, self.max_x], [self.hline, self.hline] ) # horizontal line showing trigger threshold
+            print(('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % ('double' if event.dblclick else 'single', event.button, event.x, event.y, event.xdata, event.ydata)))
+            return
+        except TypeError: pass
+
 
     doxyplot=False
     drawnxy=False

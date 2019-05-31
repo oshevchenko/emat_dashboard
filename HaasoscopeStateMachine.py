@@ -340,7 +340,12 @@ class HaasoscopeStateMachine(object):
                 self.rolltrigger = not self.rolltrigger;
                 print("Roll trigger is now:",self.rolltrigger)
                 self.ser.tellrolltrig(self.rolltrigger)
-
+            elif msg_id==MSG_ID_MOUSE_R_CLICK:
+                event = message_content['event']
+                xscaling = message_content['xscaling']
+                yscale = message_content['yscale']
+                self.ser.settriggerpoint(int((event.xdata/(1000.0*pow(2,max(self.downsample,0))/HAAS_CLKRATE/xscaling))+HAAS_NUM_SAMPLES/2)) # downsample
+                self.ser.settriggerthresh(int(event.ydata/(yscale/256.0)+128))
         pass
 
     def cleanup(self):
