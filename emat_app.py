@@ -150,8 +150,8 @@ class EmatGUI(tk.Tk):
         self.hsm.process_queue()
         self.after(UPDATE_RATE, self.updater)
 
-
-
+    def cleanup(self):
+        self.hsm.cleanup()
 
 
 
@@ -161,6 +161,10 @@ class EmatGUI(tk.Tk):
 # if not d.setup_connections(): sys.exit()
 # if not d.init(): sys.exit()
 # d.on_launch()
-
-app = EmatGUI()
-app.mainloop()
+try:
+    app = EmatGUI()
+    app.mainloop()
+except SerialException:
+    print("serial com failed!")
+finally:
+    app.cleanup()

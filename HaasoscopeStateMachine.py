@@ -331,5 +331,26 @@ class HaasoscopeStateMachine(object):
                 self.autorearm = not self.autorearm
                 print(("Autorearm is now:",self.autorearm))
                 self.ser.toggleautorearm()
+        pass
 
+    def cleanup(self):
+        try:
+            if self.autorearm:
+                self.ser.toggleautorearm()
+                self.autorearm = not self.autorearm
+            print(("Cleanup! Autorearm is:",self.autorearm))
+            # TODO:
+            # self.setbacktoserialreadout()
+            # self.resetchans()
+            # if self.autorearm: self.toggleautorearm()
+            # if self.dohighres: self.togglehighres()
+            # if self.useexttrig: self.toggleuseexttrig()
+            # if self.dologicanalyzer: self.setlogicanalyzer(False)
+            # if self.serport!="" and hasattr(self,'ser'):
+            #     self.shutdownadcs()
+            #     for p in self.usbser: p.close()
+            #     self.ser.close()
+        except SerialException:
+            print("failed to talk to board when cleaning up!")
+        print("bye bye!")
         pass
