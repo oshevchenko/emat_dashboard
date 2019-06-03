@@ -6,11 +6,12 @@ from const import *
 
 class HaasoscopeStateMachine(object):
     """docstring for HaasoscopeStateMachine"""
-    def __init__(self, gui, ser):
+    def __init__(self, gui, ser, pser):
         super(HaasoscopeStateMachine, self).__init__()
         self.db = True
         self.gui = gui
         self.ser = ser
+        self.pser = pser
         self.mq_adapter = mq.Adapter('main_queue')
         self.mq_subscriber = mq.Subscriber(self.mq_adapter)
 
@@ -354,6 +355,11 @@ class HaasoscopeStateMachine(object):
                     self.ser.settriggerthresh2(0)
                 else:
                     self.ser.settriggerthresh2(int(event.ydata/(yscale/256.0) + 128))
+            elif msg_id==MSG_ID_HV_ON:
+                self.pser.hvon()
+            elif msg_id==MSG_ID_HV_OFF:
+                self.pser.hvoff()
+
         pass
 
     def cleanup(self):

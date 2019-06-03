@@ -1,4 +1,5 @@
 import HaasoscopeSerialLib
+import PsSerialLib
 import imp
 imp.reload(HaasoscopeSerialLib) # in case you changed it, and to always load some defaults
 import Structure
@@ -106,36 +107,15 @@ class EmatGUI(tk.Tk):
             self.frames[F] = frame
             # frame.grid(row=1, column=0, columnspan=4, sticky="nsew")
         self.frame = self.frames[EmatPage]
+
+        self.psl = PsSerialLib.PsSerial()
+        if not self.psl.setup_connections(): sys.exit()
+
         self.hsl = HaasoscopeSerialLib.Haasoscope()
         self.hsl.construct()
         if not self.hsl.setup_connections(): sys.exit()
         if not self.hsl.init(): sys.exit()
-        # self.hsl.on_launch()
-        # egs.downsample=self.hsl.downsample
-        # egs.min_y = self.hsl.min_y
-        # egs.max_y = self.hsl.max_y
-        # egs.selectedchannel = self.hsl.selectedchannel
-        # egs.ydatarefchan=self.hsl.ydatarefchan
-        # egs.chanlevel = self.hsl.chanlevel
-        # egs.acdc = self.hsl.acdc
-        # egs.havereadswitchdata = self.hsl.havereadswitchdata
-        # egs.switchpos = self.hsl.switchpos
-        # egs.trigsactive = self.hsl.trigsactive
-        # egs.Vmean = self.hsl.Vmean
-        # egs.Vrms = self.hsl.Vrms
-        # egs.domeasure = self.hsl.domeasure
-        # egs.dooversample = self.hsl.dooversample
-        # egs.dologicanalyzer = self.hsl.dologicanalyzer
-        # egs.xdata = self.hsl.xdata
-        # egs.xdata2 = self.hsl.xdata2
-        # egs.xdata4 = self.hsl.xdata4
-        # egs.yscale = self.hsl.yscale
-        # egs.sincresample = self.hsl.sincresample
-        # egs.xydata = self.hsl.xydata
-        # egs.domaindrawing = self.hsl.domaindrawing
-        # egs.gain = self.hsl.gain
-        # egs.supergain = self.hsl.supergain
-        self.hsm=HSM(self.frame, self.hsl)
+        self.hsm=HSM(self.frame, self.hsl, self.psl)
         self.updater()
 
     def show_frame(self):

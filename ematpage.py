@@ -115,11 +115,12 @@ class EmatPage(tk.Frame) :
         # textbox_hv_on_off.insert('end', "HV:")
 
         button_hv_on = tk.Button(self, text="ON",
-                            command=lambda: controller.on_key_press())
+                            command=lambda: self.mq_publisher.publish(mq.Message({'id': MSG_ID_HV_ON})))
+
         button_hv_on.grid(row=4, column=2, padx=5, pady=5, sticky='nsew')
 
         button_hv_off = tk.Button(self, text="OFF",
-                            command=lambda: controller.on_key_press())
+                            command=lambda: self.mq_publisher.publish(mq.Message({'id': MSG_ID_HV_OFF})))
         button_hv_off.grid(row=5, column=2, padx=5, pady=5,  sticky='nsew')
 
         button_pulse = tk.Button(self, text="PULSE",
