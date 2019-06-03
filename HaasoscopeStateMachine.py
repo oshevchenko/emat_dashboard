@@ -346,6 +346,14 @@ class HaasoscopeStateMachine(object):
                 yscale = message_content['yscale']
                 self.ser.settriggerpoint(int((event.xdata/(1000.0*pow(2,max(self.downsample,0))/HAAS_CLKRATE/xscaling))+HAAS_NUM_SAMPLES/2)) # downsample
                 self.ser.settriggerthresh(int(event.ydata/(yscale/256.0)+128))
+            elif msg_id==MSG_ID_MOUSE_M_CLICK:
+                event = message_content['event']
+                shift = message_content['shift']
+                yscale = message_content['yscale']
+                if (shift):
+                    self.ser.settriggerthresh2(0)
+                else:
+                    self.ser.settriggerthresh2(int(event.ydata/(yscale/256.0) + 128))
         pass
 
     def cleanup(self):

@@ -462,12 +462,11 @@ class EmatPage(tk.Frame) :
             if event.button==1: #left click
                 pass
             if event.button==2: #middle click
+                msg = mq.Message({'id': MSG_ID_MOUSE_M_CLICK, 'event':event, 'shift':self.keyShift, 'yscale':self.yscale})
                 if self.keyShift:# if shift is held, turn off threshold2
-                    self.settriggerthresh2(0)
                     self.otherlines[2].set_visible(False)
                 else:
                     self.hline2 = event.ydata
-                    self.settriggerthresh2(int(  self.hline2/(self.yscale/256.) + 128  ))
                     self.otherlines[2].set_visible(True) # starts off being hidden, so now show it!
                     self.otherlines[2].set_data( [self.min_x, self.max_x], [self.hline2, self.hline2] )
             if event.button==3: #right click
