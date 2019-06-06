@@ -359,6 +359,8 @@ class HaasoscopeStateMachine(object):
                 self.pser.hvon()
             elif msg_id==MSG_ID_HV_OFF:
                 self.pser.hvoff()
+            elif msg_id==MSG_ID_PULSE_ON:
+                self.pser.pulseon()
 
         pass
 

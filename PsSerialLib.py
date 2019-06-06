@@ -60,6 +60,12 @@ class PsSerial():
             print("failed to talk to board when cleaning up!")
         print("bye bye!")
 
+    def pulseon(self):
+        frame=[]
+        s="pulse on\r"
+        frame.extend(s.encode())
+        self.ser.write(frame)
+
     def hvon(self):
         frame=[]
         s="hv on\r"

@@ -124,7 +124,7 @@ class EmatPage(tk.Frame) :
         button_hv_off.grid(row=5, column=2, padx=5, pady=5,  sticky='nsew')
 
         button_pulse = tk.Button(self, text="PULSE",
-                            command=lambda: controller.on_key_press())
+                            command=lambda: self.mq_publisher.publish(mq.Message({'id': MSG_ID_PULSE_ON})))
         button_pulse.grid(row=6, column=1, columnspan=2, padx=5, pady=5, sticky='nsew')
 
 
