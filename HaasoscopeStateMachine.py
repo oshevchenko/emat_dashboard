@@ -45,7 +45,6 @@ class HaasoscopeStateMachine(object):
         self.selectedchannel = 0
         self.ydatarefchan=-1 #the reference channel for each board, whose ydata will be subtracted from other channels' ydata on the board
         self.domeasure = True
-        self.autorearm=False #whether to automatically rearm the trigger after each event, or wait for a signal from software
         self.useexttrig=False #whether to use the external trigger input
         self.readcalib()
         text = self.chantext()
@@ -283,19 +282,23 @@ class HaasoscopeStateMachine(object):
         self.setdacvalue()
 
     def process_queue(self):
-        if not self.autorearm:
-            self.ser.rearm()
-
+        ydata_processed=False
         while True:
             message = self.mq_subscriber.consume()
+
             if not message: break
             message_content = message.get_content_body()
             msg_id = message_content['id']
+            print("message:",msg_id)
             # print ("message id:", msg_id)
             if msg_id==MSG_ID_YDATA:
-                ydata = message_content['ydata']
-                bn = message_content['bn']
-                self.gui.on_running(ydata, bn, self.downsample)
+                # Board generates too much data, we only need to process one message at time
+                # and skip the rest to prevent the queue from overload.
+                if not ydata_processed:
+                    ydata = message_content['ydata']
+                    bn = message_content['bn']
+                    self.gui.on_running(ydata, bn, self.downsample)
+                    ydata_processed = True
             elif msg_id==MSG_ID_DRAWTEXT:
                 self.gui.drawtext(self.chantext())
             elif msg_id==MSG_ID_TOGGLE_LOGICANALYZER:
@@ -330,8 +333,6 @@ class HaasoscopeStateMachine(object):
                     downsample = self.downsample+increment;
                 self.telldownsample(downsample)
             elif msg_id==MSG_ID_TOGGLE_AUTO_REARM:
-                self.autorearm = not self.autorearm
-                print(("Autorearm is now:",self.autorearm))
                 self.ser.toggleautorearm()
             elif msg_id==MSG_ID_TOGGLE_EXT_TRIG:
                 self.useexttrig = not self.useexttrig
@@ -366,13 +367,12 @@ class HaasoscopeStateMachine(object):
 
     def cleanup(self):
         try:
-            if self.autorearm: self.ser.toggleautorearm()
             if self.useexttrig: self.ser.toggleuseexttrig()
+            self.ser.cleanup()
 
             # TODO:
             # self.setbacktoserialreadout()
             # self.resetchans()
-            # if self.autorearm: self.toggleautorearm()
             # if self.dohighres: self.togglehighres()
             # if self.dologicanalyzer: self.setlogicanalyzer(False)
             # if self.serport!="" and hasattr(self,'ser'):

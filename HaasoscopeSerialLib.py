@@ -8,7 +8,7 @@ import numpy as np
 import time, json, os
 import matplotlib
 from const import *
-
+import threading
 
 mearm=False
 mewin=False
@@ -115,10 +115,12 @@ class Haasoscope():
         self.debuglockin=False #debugging of lockin calculations #True #False
         self.reffreq = 0.008 #MHz of reference signal on chan 3 for lockin calculations
         self.refsinchan = 3 #the channel number of the ref input signal (for auto reffreq calculation via sin fit)
-
+        self.autorearm=False #whether to automatically rearm the trigger after each event, or wait for a signal from software
         self.xscaling=1.e0 # for the x-axis scale
         self.rollingtrigger=True #rolling auto trigger at 5 Hz
         self.dologicanalyzer=False #whether to send logic analyzer data
+        self.thread_running=True
+        self._lock = threading.Lock()
 
 
         #These hold the state of the IO expanders
@@ -133,7 +135,8 @@ class Haasoscope():
         frame=[]
         if rt: frame.append(101)
         else:  frame.append(102)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
 
     def tellsamplesmax10adc(self, nsamp):
         #tell it the number of samples to use for the 1MHz internal Max10 ADC
@@ -151,7 +154,8 @@ class Haasoscope():
         offset=5 #small offset due to drawing and delay
         myb=bytearray.fromhex('{:04x}'.format(tp+offset))
         frame.extend(myb)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
 
         print(("Trigger point is",256*myb[0]+1*myb[1]-offset))
 
@@ -242,7 +246,8 @@ class Haasoscope():
         frame=[]
         frame.append(127)
         frame.append(tp)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
         print(("Trigger threshold is",tp))
 
     def settriggerthresh2(self,tp):
@@ -426,13 +431,16 @@ class Haasoscope():
         self.ser.write(frame)
 
     def toggleautorearm(self):
+        self.autorearm = not self.autorearm
         frame=[]
         #tell it to toggle the auto rearm of the tirgger after readout
         frame.append(139)
         # prime the trigger one last time
         frame.append(100)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
         if self.db: print((time.time()-self.oldtime,"priming trigger"))
+        print(("Autorearm is now:",self.autorearm))
 
     def getID(self, n):
         debug3=True
@@ -1030,10 +1038,10 @@ class Haasoscope():
     oldtime2=time.time()
 
     def rearm(self):
-            if self.db: print((time.time()-self.oldtime,"priming trigger"))
-            frame=[]
-            frame.append(100)
-            self.ser.write(frame)
+        if self.db: print((time.time()-self.oldtime,"priming trigger"))
+        frame=[]
+        frame.append(100)
+        self.ser.write(frame)
 
     def getchannels(self):
         self.max10adcchan=1
@@ -1103,6 +1111,16 @@ class Haasoscope():
                                 if not self.supergain[thechan] and not self.testBit(newswitchpos,b)>0:
                                     self.togglesupergainchan(thechan)
                     self.switchpos[board] = newswitchpos
+    def thread_function(self):
+        # time.sleep(2)
+        while self.thread_running:
+            with self._lock:
+                if not self.autorearm:
+                    self.rearm()
+                self.getchannels()
+            print("from thread --->")
+
+
 
     #initialization
     def init(self):
@@ -1140,12 +1158,26 @@ class Haasoscope():
             self.domeasure=self.domaindrawing #by default we will calculate measurements if we are drawing
             return True
 
+    def StartDataThread(self):
+        self.x = threading.Thread(target=self.thread_function)
+        self.x.start()
+        self.thread_running=True
+
     #cleanup
     def cleanup(self):
+        if self.thread_running:
+            self.thread_running=False
+            self.x.join()
+        try:
+            if self.autorearm: self.toggleautorearm()
+        except SerialException:
+            print("failed to talk to board when cleaning up!")
+        print("bye bye from serial")
+        return
         try:
             self.setbacktoserialreadout()
             self.resetchans()
-            # if self.autorearm: self.toggleautorearm()
+
             if self.dohighres: self.togglehighres()
             # if self.useexttrig: self.toggleuseexttrig()
             if self.dologicanalyzer: self.setlogicanalyzer(False)
@@ -1155,8 +1187,8 @@ class Haasoscope():
                 self.ser.close()
         except SerialException:
             print("failed to talk to board when cleaning up!")
-        plt.close()
-        print("bye bye!")
+
+
 
     #For setting up serial and USB connections
     def setup_connections(self):

@@ -52,7 +52,7 @@ plt.rcParams['keymap.grid'] = ''
 #plt.rcParams['keymap.yscale'] = ''
 plt.rcParams['keymap.xscale'] = ''
 plt.rcParams['keymap.all_axes'] = ''
-UPDATE_RATE = 10
+UPDATE_RATE = 0
 
 class EmatGUI(tk.Tk):
 
@@ -116,6 +116,7 @@ class EmatGUI(tk.Tk):
         if not self.hsl.setup_connections(): sys.exit()
         if not self.hsl.init(): sys.exit()
         self.hsm=HSM(self.frame, self.hsl, self.psl)
+        self.hsl.StartDataThread()
         self.updater()
 
     def show_frame(self):
@@ -126,7 +127,7 @@ class EmatGUI(tk.Tk):
 
     def updater(self):
         # print("Tick.")
-        if not self.hsl.getchannels(): print("Tick.")
+        # if not self.hsl.getchannels(): print("Tick.")
         self.hsm.process_queue()
         self.after(UPDATE_RATE, self.updater)
 
