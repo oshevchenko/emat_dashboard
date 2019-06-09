@@ -9,6 +9,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 import numpy as np
 from const import *
 from HaasoscopeOversampleLib import HaasoscopeOversample
+from tkinter import StringVar, IntVar
 
 class EmatPage(tk.Frame) :
     keyResample=False
@@ -95,8 +96,11 @@ class EmatPage(tk.Frame) :
         textbox_width.grid(row=0, column=1, columnspan=2, sticky='nsew')
         # textbox_width.insert('end', "Width, mm:")
 
+        self.width_text = StringVar()
+        self.width_text.set('--.-')
 
-        measured_width = tk.Label(self, text="--.-", bg='lavender', font=("Helvetica", 20))
+        # measured_width = tk.Label(self, text="--.-", bg='lavender', font=("Helvetica", 20))
+        measured_width = tk.Label(self, textvariable=self.width_text, bg='lavender', font=("Helvetica", 20))
         measured_width.grid(row=1, column=1, columnspan=2, padx=5, pady=5, sticky='nsew')
         # measured_width.insert('end', "10.0")
 
@@ -666,3 +670,6 @@ class EmatPage(tk.Frame) :
 
     def disable_otherline(self, n):
         self.otherlines[n].set_visible(False)
+    def draw_width(self, width):
+        # self.width_text=
+        self.width_text.set("{0:.2f}".format(width))

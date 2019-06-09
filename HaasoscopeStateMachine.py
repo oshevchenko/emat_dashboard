@@ -4,6 +4,7 @@ from struct import unpack
 import time, json, os
 from const import *
 from HaasoscopeOversampleLib import HaasoscopeOversample as hos
+from WidthMeter import WidthMeter
 
 class HaasoscopeStateMachine(object):
     """docstring for HaasoscopeStateMachine"""
@@ -16,6 +17,7 @@ class HaasoscopeStateMachine(object):
         self.mq_adapter = mq.Adapter('main_queue')
         self.mq_subscriber = mq.Subscriber(self.mq_adapter)
         self.hos = hos
+        self.wm = WidthMeter()
 
         print(("num main ADC and max10adc bytes for all boards = ",HAAS_NUM_BYTES*HAAS_NUM_BOARD,"and",len(HAAS_MAX10ADCCHANS)*HAAS_NSAMP))
         self.Vrms=np.zeros(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=float) # the Vrms for each channel
@@ -301,6 +303,9 @@ class HaasoscopeStateMachine(object):
                     bn = message_content['bn']
                     self.gui.on_running(ydata, bn, self.downsample)
                     ydata_processed = True
+                    signal = ydata[0]
+                    # print("len ydata:", signal[0])
+                    self.gui.draw_width(self.wm.freq(ydata, 0, self.downsample))
             elif msg_id==MSG_ID_DRAWTEXT:
                 self.gui.drawtext(self.chantext())
             elif msg_id==MSG_ID_TOGGLE_LOGICANALYZER:

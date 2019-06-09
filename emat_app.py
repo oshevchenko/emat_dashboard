@@ -111,7 +111,7 @@ class EmatGUI(tk.Tk):
         self.frame = self.frames[EmatPage]
 
         self.psl = PsSerialLib.PsSerial()
-        if not self.psl.setup_connections(): sys.exit()
+        # if not self.psl.setup_connections(): sys.exit()
         self.hsl = HaasoscopeSerialLib.Haasoscope()
         self.hsl.construct(self.hos)
         if not self.hsl.setup_connections(): sys.exit()
