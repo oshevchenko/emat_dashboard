@@ -8,6 +8,7 @@ matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import numpy as np
 from const import *
+from HaasoscopeOversampleLib import HaasoscopeOversample
 
 class EmatPage(tk.Frame) :
     keyResample=False
@@ -19,8 +20,9 @@ class EmatPage(tk.Frame) :
     keyAlt=False
     keyControl=False
 
-    def __init__(self, parent, controller):
+    def __init__(self, parent, controller, hos):
         tk.Frame.__init__(self,parent)
+        self.hos = hos
         self.mq_adapter = mq.Adapter('main_queue')
         self.mq_publisher = mq.Publisher(self.mq_adapter)
         self.ydatarefchan=-1 #the reference channel for each board, whose ydata will be subtracted from other channels' ydata on the board
@@ -29,13 +31,13 @@ class EmatPage(tk.Frame) :
         self.domaindrawing=True
         self.domeasure=True
         self.xdata=np.arange(HAAS_NUM_SAMPLES)
-        self.xdata2=np.arange(HAAS_NUM_SAMPLES*2) # for oversampling
-        self.xdata4=np.arange(HAAS_NUM_SAMPLES*4) # for over-oversampling
         self.xydata=np.empty([HAAS_NUM_CHAN_PER_BOARD*HAAS_NUM_BOARD,2,HAAS_NUM_SAMPLES-1],dtype=float)
         self.Vrms=np.zeros(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=float) # the Vrms for each channel
         self.Vmean=np.zeros(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=float) # the Vmean for each channel
         self.gain=np.ones(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=int) # 1 is low gain, 0 is high gain (x10)
         self.supergain=np.ones(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=int) # 1 is normal gain, 0 is super gain (x100)
+        self.xdata2=np.arange(HAAS_NUM_SAMPLES*2) # for oversampling
+        self.xdata4=np.arange(HAAS_NUM_SAMPLES*4) # for over-oversampling
 
 
         # >>>>>>>>>>>>>>>>>>>>>>>>>
@@ -221,7 +223,7 @@ class EmatPage(tk.Frame) :
             elif event.key=="e": self.toggleuseexttrig(); return
             elif event.key=="A": self.toggleautorearm(); return
             elif event.key=="U": self.toggledousb(); return
-            elif event.key=="O": self.oversamp(self.selectedchannel); self.prepareforsamplechange(); return
+            elif event.key=="O": self.oversamp(); return # self.prepareforsamplechange(); return
             elif event.key=="ctrl+o": self.overoversamp(); self.prepareforsamplechange(); return
             elif event.key==">": self.refsinchan=self.selectedchannel; self.oldchanphase=-1.; self.reffreq=0;
             elif event.key=="t": self.fallingedge=not self.fallingedge;self.settriggertype(self.fallingedge);print(("trigger falling edge toggled to",self.fallingedge)); return
@@ -406,6 +408,43 @@ class EmatPage(tk.Frame) :
         # self.canvas.mpl_connect('close_event', self.handle_main_close)
         self.canvas.draw()
 
+    def togglechannel(self,theline,leaveoff=False):
+        # on the pick event, find the orig line corresponding to the
+        # legend proxy line, and toggle the visibility
+        origline,legline,channum = self.lined[theline]
+        if leaveoff and not origline.get_visible(): return
+        print(("toggle",theline,"for channum",channum))
+        vis = not origline.get_visible()
+        origline.set_visible(vis)
+        # if channum < HAAS_NUM_BOARD*num_chan_per_board: # it's an ADC channel (not a max10adc channel or other thing)
+            # If the channel was not actively triggering, and we now turned it on, or vice versa, toggle the trigger activity for this channel
+            # if self.trigsactive[channum] != vis: self.toggletriggerchan(channum)
+        # Change the alpha on the line in the legend so we can see what lines have been toggled
+        if vis: legline.set_alpha(1.0); legline.set_linewidth(2.0)
+        else: legline.set_alpha(0.2); legline.set_linewidth(1.0)
+
+
+    def oversamp(self):
+        #tell it to toggle oversampling for this channel
+
+        msg = mq.Message({'id': MSG_ID_OVERSAMPLE})
+        self.mq_publisher.publish(msg)
+
+        # chanonboard = chan%num_chan_per_board
+        # if chanonboard>1: return
+        # if chanonboard==1 and self.dooversample[chan] and self.dooversample[chan-1]==9: print(("first disable over-oversampling on channel",chan-1)); return
+        # self.togglechannel(chan+2,True)
+        # self.dooversample[chan] = not self.dooversample[chan];
+        # print(("oversampling is now",self.dooversample[chan],"for channel",chan))
+        # if self.dooversample[chan] and self.downsample>0: self.telldownsample(0) # must be in max sampling mode for oversampling to make sense
+        # frame=[]
+        # frame.append(141)
+        # firmchan=self.getfirmchan(chan)
+        # frame.append(firmchan)
+        # self.ser.write(frame)
+        # self.drawtext()
+        # self.figure.canvas.draw()
+
     def toggleuseexttrig(self):
         msg = mq.Message({'id': MSG_ID_TOGGLE_EXT_TRIG})
         self.mq_publisher.publish(msg)
@@ -540,17 +579,17 @@ class EmatPage(tk.Frame) :
                 thechan=l+(HAAS_NUM_BOARD-board-1)*HAAS_NUM_CHAN_PER_BOARD
                 #if self.db: print time.time()-self.oldtime,"drawing adc line",thechan
                 if len(theydata)<=l: print(("don't have channel",l,"on board",board)); return
-                # if self.egs.dooversample[thechan]==1: # account for oversampling
-                #     xdatanew = (self.xdata2-HAAS_NUM_SAMPLES)*(1000.0*pow(2,max(downsample,0))/HAAS_CLKRATE/self.xscaling/2.) #downsample isn't less than 0 for xscaling
-                #     theydata2=np.concatenate([theydata[l],theydata[l+2]]) # concatenate the 2 lists
-                #     ydatanew=(127-theydata2)*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
-                # elif self.egs.dooversample[thechan]==9: # account for over-oversampling
-                #     xdatanew = (self.xdata4-HAAS_NUM_SAMPLES*2)*(1000.0*pow(2,max(downsample,0))/HAAS_CLKRATE/self.xscaling/4.) #downsample isn't less than 0 for xscaling
-                #     theydata4=np.concatenate([theydata[l],theydata[l+1],theydata[l+2],theydata[l+3]]) # concatenate the 4 lists
-                #     ydatanew=(127-theydata4)*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
-                # else:
-                xdatanew = (self.xdata-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(downsample,0))/HAAS_CLKRATE/self.xscaling) #downsample isn't less than 0 for xscaling
-                ydatanew=(127-theydata[l])*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
+                if self.hos.dooversample[thechan]==1: # account for oversampling
+                    xdatanew = (self.xdata2-HAAS_NUM_SAMPLES)*(1000.0*pow(2,max(downsample,0))/HAAS_CLKRATE/self.xscaling/2.) #downsample isn't less than 0 for xscaling
+                    theydata2=np.concatenate([theydata[l],theydata[l+2]]) # concatenate the 2 lists
+                    ydatanew=(127-theydata2)*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
+                elif self.hos.dooversample[thechan]==9: # account for over-oversampling
+                    xdatanew = (self.xdata4-HAAS_NUM_SAMPLES*2)*(1000.0*pow(2,max(downsample,0))/HAAS_CLKRATE/self.xscaling/4.) #downsample isn't less than 0 for xscaling
+                    theydata4=np.concatenate([theydata[l],theydata[l+1],theydata[l+2],theydata[l+3]]) # concatenate the 4 lists
+                    ydatanew=(127-theydata4)*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
+                else:
+                    xdatanew = (self.xdata-HAAS_NUM_SAMPLES/2.)*(1000.0*pow(2,max(downsample,0))/HAAS_CLKRATE/self.xscaling) #downsample isn't less than 0 for xscaling
+                    ydatanew=(127-theydata[l])*(self.yscale/256.) # got to flip it, since it's a negative feedback op amp
                 if self.ydatarefchan>=0: ydatanew -= (127-theydata[self.ydatarefchan])*(self.yscale/256.) # subtract the board's reference channel ydata from this channel's ydata
                 if self.sincresample>0:
                     (ydatanew,xdatanew) = resample(ydatanew, len(xdatanew)*self.sincresample, t = xdatanew)
@@ -559,23 +598,23 @@ class EmatPage(tk.Frame) :
                 else:
                     xdatanew = xdatanew[1:len(xdatanew)]
                     ydatanew = ydatanew[1:len(ydatanew)]
-                # if self.egs.dooversample[thechan]==1: # account for oversampling, take the middle-most section
-                #     if self.sincresample>0:
-                #         self.xydata[l][0]=xdatanew[self.sincresample+HAAS_NUM_SAMPLES*self.sincresample/2:3*HAAS_NUM_SAMPLES*self.sincresample/2:1] # for printing out or other analysis
-                #         self.xydata[l][1]=ydatanew[self.sincresample+HAAS_NUM_SAMPLES*self.sincresample/2:3*HAAS_NUM_SAMPLES*self.sincresample/2:1]
-                #     else:
-                #         self.xydata[l][0]=xdatanew[1+HAAS_NUM_SAMPLES/2:3*HAAS_NUM_SAMPLES/2:1] # for printing out or other analysis
-                #         self.xydata[l][1]=ydatanew[1+HAAS_NUM_SAMPLES/2:3*HAAS_NUM_SAMPLES/2:1]
-                # elif self.egs.dooversample[thechan]==9: # account for over-oversampling, take the middle-most section
-                #      if self.sincresample>0:
-                #          self.xydata[l][0]=xdatanew[self.sincresample+3*HAAS_NUM_SAMPLES*self.sincresample/2:5*HAAS_NUM_SAMPLES*self.sincresample/2:1] # for printing out or other analysis
-                #          self.xydata[l][1]=ydatanew[self.sincresample+3*HAAS_NUM_SAMPLES*self.sincresample/2:5*HAAS_NUM_SAMPLES*self.sincresample/2:1]
-                #      else:
-                #         self.xydata[l][0]=xdatanew[1+3*HAAS_NUM_SAMPLES/2:5*HAAS_NUM_SAMPLES/2:1] # for printing out or other analysis
-                #         self.xydata[l][1]=ydatanew[1+3*HAAS_NUM_SAMPLES/2:5*HAAS_NUM_SAMPLES/2:1]
-                # else: # the full data is stored
-                self.xydata[l][0]=xdatanew # for printing out or other analysis
-                self.xydata[l][1]=ydatanew
+                if self.hos.dooversample[thechan]==1: # account for oversampling, take the middle-most section
+                    if self.sincresample>0:
+                        self.xydata[l][0]=xdatanew[self.sincresample+HAAS_NUM_SAMPLES*self.sincresample/2:3*HAAS_NUM_SAMPLES*self.sincresample/2:1] # for printing out or other analysis
+                        self.xydata[l][1]=ydatanew[self.sincresample+HAAS_NUM_SAMPLES*self.sincresample/2:3*HAAS_NUM_SAMPLES*self.sincresample/2:1]
+                    else:
+                        self.xydata[l][0]=xdatanew[1+int(HAAS_NUM_SAMPLES/2):3*int(HAAS_NUM_SAMPLES/2):1] # for printing out or other analysis
+                        self.xydata[l][1]=ydatanew[1+int(HAAS_NUM_SAMPLES/2):3*int(HAAS_NUM_SAMPLES/2):1]
+                elif self.hos.dooversample[thechan]==9: # account for over-oversampling, take the middle-most section
+                    if self.sincresample>0:
+                        self.xydata[l][0]=xdatanew[self.sincresample+3*HAAS_NUM_SAMPLES*self.sincresample/2:5*HAAS_NUM_SAMPLES*self.sincresample/2:1] # for printing out or other analysis
+                        self.xydata[l][1]=ydatanew[self.sincresample+3*HAAS_NUM_SAMPLES*self.sincresample/2:5*HAAS_NUM_SAMPLES*self.sincresample/2:1]
+                    else:
+                        self.xydata[l][0]=xdatanew[1+3*int(HAAS_NUM_SAMPLES/2):5*int(HAAS_NUM_SAMPLES/2):1] # for printing out or other analysis
+                        self.xydata[l][1]=ydatanew[1+3*int(HAAS_NUM_SAMPLES/2):5*int(HAAS_NUM_SAMPLES/2):1]
+                else: # the full data is stored
+                    self.xydata[l][0]=xdatanew # for printing out or other analysis
+                    self.xydata[l][1]=ydatanew
                 if len(self.lines)>thechan and self.domaindrawing: # we may not be drawing, so check!
                     self.lines[thechan].set_xdata(xdatanew)
                     self.lines[thechan].set_ydata(ydatanew)

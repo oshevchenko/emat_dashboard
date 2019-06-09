@@ -24,6 +24,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 # implement the default mpl key bindings
 #from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
+from HaasoscopeOversampleLib import HaasoscopeOversample as hos
 
 print(("matplotlib backend is",plt.get_backend()))
 
@@ -99,23 +100,23 @@ class EmatGUI(tk.Tk):
         ###Button Plot4
         button4.grid(row=0, column=3,  sticky='nsew')
 
+        self.hos = hos()
 
         self.frames = {} #dic
 
         for F in (EmatPage,):#, Page1, Page2, Page3):
-            frame = F(container, self)
+            frame = F(container, self, self.hos)
             self.frames[F] = frame
             # frame.grid(row=1, column=0, columnspan=4, sticky="nsew")
         self.frame = self.frames[EmatPage]
 
         self.psl = PsSerialLib.PsSerial()
         if not self.psl.setup_connections(): sys.exit()
-
         self.hsl = HaasoscopeSerialLib.Haasoscope()
-        self.hsl.construct()
+        self.hsl.construct(self.hos)
         if not self.hsl.setup_connections(): sys.exit()
         if not self.hsl.init(): sys.exit()
-        self.hsm=HSM(self.frame, self.hsl, self.psl)
+        self.hsm=HSM(self.frame, self.hsl, self.psl, self.hos)
         self.hsl.StartDataThread()
         self.updater()
 

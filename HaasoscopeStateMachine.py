@@ -3,10 +3,11 @@ import numpy as np
 from struct import unpack
 import time, json, os
 from const import *
+from HaasoscopeOversampleLib import HaasoscopeOversample as hos
 
 class HaasoscopeStateMachine(object):
     """docstring for HaasoscopeStateMachine"""
-    def __init__(self, gui, ser, pser):
+    def __init__(self, gui, ser, pser, hos):
         super(HaasoscopeStateMachine, self).__init__()
         self.db = True
         self.gui = gui
@@ -14,6 +15,7 @@ class HaasoscopeStateMachine(object):
         self.pser = pser
         self.mq_adapter = mq.Adapter('main_queue')
         self.mq_subscriber = mq.Subscriber(self.mq_adapter)
+        self.hos = hos
 
         print(("num main ADC and max10adc bytes for all boards = ",HAAS_NUM_BYTES*HAAS_NUM_BOARD,"and",len(HAAS_MAX10ADCCHANS)*HAAS_NSAMP))
         self.Vrms=np.zeros(HAAS_NUM_BOARD*HAAS_NUM_CHAN_PER_BOARD, dtype=float) # the Vrms for each channel
@@ -289,7 +291,7 @@ class HaasoscopeStateMachine(object):
             if not message: break
             message_content = message.get_content_body()
             msg_id = message_content['id']
-            print("message:",msg_id)
+            # print("message:",msg_id)
             # print ("message id:", msg_id)
             if msg_id==MSG_ID_YDATA:
                 # Board generates too much data, we only need to process one message at time
@@ -362,6 +364,23 @@ class HaasoscopeStateMachine(object):
                 self.pser.hvoff()
             elif msg_id==MSG_ID_PULSE_ON:
                 self.pser.pulseon()
+            elif msg_id==MSG_ID_OVERSAMPLE:
+                if (self.hos.ToggleOversamp(self.selectedchannel)):
+                    # must be in max sampling mode for oversampling to make sense
+                    if self.hos.dooversample[self.selectedchannel] and self.downsample>0: self.telldownsample(0)
+                    firmchan=self.getfirmchan(self.selectedchannel)
+                    self.ser.toggleoversamp(firmchan)
+                    chan_off = self.selectedchannel+2
+                    self.gui.togglechannel(chan_off, True)
+                    if self.trigsactive[chan_off]:
+                        self.trigsactive[chan_off] = False
+                        self.gui.settriggerchan(chan_off, False)
+                        self.gui.drawtext(self.chantext())
+                        firmchan=self.getfirmchan(chan_off)
+                        self.ser.settriggerchan(firmchan)
+                        if self.db: print(("Trigger toggled for channel:",chan_off))
+
+
 
         pass
 

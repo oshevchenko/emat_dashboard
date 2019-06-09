@@ -1,7 +1,7 @@
 import message_queue as mq
 # -*- coding: utf-8 -*-
 print("Loading HaasoscopeLib.py")
-
+from HaasoscopeOversampleLib import HaasoscopeOversample as hos
 from serial import Serial, SerialException
 from struct import unpack
 import numpy as np
@@ -70,7 +70,8 @@ if enable_ripyl:
 
 class Haasoscope():
 
-    def construct(self):
+    def construct(self, hos):
+        self.hos = hos
         self.mq_adapter = mq.Adapter('main_queue')
         self.mq_publisher = mq.Publisher(self.mq_adapter)
 
@@ -143,7 +144,8 @@ class Haasoscope():
         frame=[]
         frame.append(120)
         frame.extend(bytearray.fromhex('{:04x}'.format(nsamp)))
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
 
         if self.db: print(("Nsamp for max10 ADC is ",256*frame[1]+1*frame[2]," HAAS_NSAMP:",HAAS_NSAMP))
 
@@ -165,7 +167,8 @@ class Haasoscope():
         frame.append(122)
         # Either 0 for all, or num_samples*pow(2,HAAS_SENDINCREMENT)
         frame.extend(bytearray.fromhex('{:04x}'.format(num_samples_to_send)))
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
 
         print(("num samples is",256*frame[1]+1*frame[2]))
 
@@ -175,7 +178,8 @@ class Haasoscope():
         frame.append(138)
         myb=bytearray.fromhex('{:04x}'.format(numtoshift))
         frame.extend(myb)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
 
         if self.db: print(("lockinnumtoshift is",256*myb[0]+1*myb[1]))
 
@@ -184,7 +188,8 @@ class Haasoscope():
         frame=[]
         frame.append(135)
         frame.extend(bytearray.fromhex('{:04x}'.format(self.serialdelaytimerwait)))
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
 
         print(("serialdelaytimerwait is",256*frame[1]+1*frame[2]))
 
@@ -193,7 +198,8 @@ class Haasoscope():
         frame=[]
         frame.append(123)
         frame.append(HAAS_SENDINCREMENT)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
 
         print(("123 send increment is",HAAS_SENDINCREMENT))
 
@@ -206,7 +212,8 @@ class Haasoscope():
             frame.append(5)
         else:
             frame.append(4)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
         print(("dologicanalyzer is now",self.dologicanalyzer))
 
     minfirmwareversion=255
@@ -216,8 +223,9 @@ class Haasoscope():
         frame=[]
         frame.append(30+board) #make the next board active (serial_passthrough 0)
         frame.append(147) #request the firmware version byte
-        self.ser.write(frame)
-        self.ser.timeout=0.1; rslt = self.ser.read(1); self.ser.timeout=self.sertimeout # reduce the serial timeout temporarily, since the old firmware versions will return nothing for command 147
+        with self._lock:
+            self.ser.write(frame)
+            self.ser.timeout=0.1; rslt = self.ser.read(1); self.ser.timeout=self.sertimeout # reduce the serial timeout temporarily, since the old firmware versions will return nothing for command 147
         byte_array = unpack('%dB'%len(rslt),rslt)
         firmwareversion=0
         if len(byte_array)>0: firmwareversion=byte_array[0]
@@ -229,7 +237,8 @@ class Haasoscope():
         frame=[]
         frame.append(125)
         frame.append(ds)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
         if self.db: print(("clockbitstowait is",ds))
 
     def tellminidisplaychan(self,ch):
@@ -237,7 +246,8 @@ class Haasoscope():
         frame=[]
         frame.append(126)
         frame.append(ch)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
         print(("chanforscreen is",ch))
 
     def settriggerthresh(self,tp):
@@ -256,7 +266,8 @@ class Haasoscope():
         frame=[]
         frame.append(140)
         frame.append(tp)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
         print(("Trigger high threshold is",tp))
 
     def settriggertype(self,tp):
@@ -264,7 +275,8 @@ class Haasoscope():
         frame=[]
         frame.append(128)
         frame.append(tp)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
         if self.db: print(("Trigger type is",tp))
 
     def settriggertime(self,ttt):
@@ -275,7 +287,8 @@ class Haasoscope():
         frame=[]
         frame.append(129)
         frame.extend(bytearray.fromhex('{:04x}'.format(ttt)))
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
         print(("129 trigger time over/under thresh now",256*frame[1]+1*frame[2]-pow(2,12),"and usedownsamplefortriggertot is",usedownsamplefortriggertot))
 
     def getfirmchan(self,chan):
@@ -318,9 +331,10 @@ class Haasoscope():
         if what==31: myb=bytearray.fromhex('01 06') #multiplexed, with chB first
         if what==32: myb=bytearray.fromhex('01 00') # not multiplexed output
         frame.extend(myb)
-        self.ser.write(frame)
-        print(("tell SPI setup: 131 ",myb[0],myb[1]))
-        time.sleep(.01) #pause to make sure other SPI writng is done
+        with self._lock:
+            self.ser.write(frame)
+            print(("tell SPI setup: 131 ",myb[0],myb[1]))
+            time.sleep(.01) #pause to make sure other SPI writng is done
 
     # testBit() returns a nonzero result, 2**offset, if the bit at 'offset' is one.
     def testBit(self,int_type, offset):
@@ -351,8 +365,9 @@ class Haasoscope():
         for b in np.arange(4-len(myb)):
             frame.append(255)
         frame.append(board)
-        self.ser.write(frame) #200 (default) will address message to all boards, otherwise only the given board ID will listen
-        time.sleep(.02)
+        with self._lock:
+            self.ser.write(frame) #200 (default) will address message to all boards, otherwise only the given board ID will listen
+            time.sleep(.02)
         if db2: print("sendi2c frame:",unpack('%dB' % len(frame), frame))
     def setupi2c(self):
         self.sendi2c("20 00 00") #port A on IOexp 1 are outputs
@@ -406,7 +421,8 @@ class Haasoscope():
             self.dousb = not self.dousb
             frame=[]
             frame.append(137)
-            self.ser.write(frame)
+            with self._lock:
+                self.ser.write(frame)
             print(("dousb toggled to",self.dousb))
             if self.dousb: print(("rate theoretically",round(4000000./(HAAS_NUM_BYTES*HAAS_NUM_BOARD+len(HAAS_MAX10ADCCHANS)*HAAS_NSAMP),2),"Hz over USB2"))
             self.telltickstowait()
@@ -414,21 +430,24 @@ class Haasoscope():
     def togglehighres(self):#toggle whether to do highres averaging during downsampling or not
             frame=[]
             frame.append(143)
-            self.ser.write(frame)
+            with self._lock:
+                self.ser.write(frame)
             self.dohighres = not self.dohighres
             print(("143 do highres is",self.dohighres))
 
     def toggleuseexttrig(self):#toggle whether to use the external trigger input or not
             frame=[]
             frame.append(144)
-            self.ser.write(frame)
+            with self._lock:
+                self.ser.write(frame)
 
     def settriggerchan(self,firmchan):
         #tell it to trigger or not trigger on a given channel
         frame=[]
         frame.append(130)
         frame.append(firmchan)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
 
     def toggleautorearm(self):
         self.autorearm = not self.autorearm
@@ -447,9 +466,10 @@ class Haasoscope():
         frame=[]
         frame.append(30+n)
         frame.append(142)
-        self.ser.write(frame)
-        num_other_bytes = 8
-        rslt = self.ser.read(num_other_bytes)
+        with self._lock:
+            self.ser.write(frame)
+            num_other_bytes = 8
+            rslt = self.ser.read(num_other_bytes)
         return rslt
 
     def togglesupergainchan(self,chan):
@@ -483,7 +503,8 @@ class Haasoscope():
         frame.append(134)
         firmchan=self.getfirmchan(chan)
         frame.append(firmchan)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
         if len(plt.get_fignums())>0: origline,legline,channum = self.lined[chan]
         if self.gain[chan]==1:
             self.gain[chan]=0 # x10 gain on!
@@ -508,22 +529,13 @@ class Haasoscope():
         if len(plt.get_fignums())>0: self.figure.canvas.draw()
         print(("Gain switched for channel",chan,"to",self.gain[chan]))
 
-    def oversamp(self,chan):
+    def toggleoversamp(self,firmchan):
         #tell it to toggle oversampling for this channel
-        chanonboard = chan%HAAS_NUM_CHAN_PER_BOARD
-        if chanonboard>1: return
-        if chanonboard==1 and self.dooversample[chan] and self.dooversample[chan-1]==9: print(("first disable over-oversampling on channel",chan-1)); return
-        self.togglechannel(chan+2,True)
-        self.dooversample[chan] = not self.dooversample[chan];
-        print(("oversampling is now",self.dooversample[chan],"for channel",chan))
-        if self.dooversample[chan] and self.downsample>0: self.telldownsample(0) # must be in max sampling mode for oversampling to make sense
         frame=[]
         frame.append(141)
-        firmchan=self.getfirmchan(chan)
         frame.append(firmchan)
-        self.ser.write(frame)
-        self.drawtext()
-        self.figure.canvas.draw()
+        with self._lock:
+            self.ser.write(frame)
 
     def overoversamp(self):
         if self.selectedchannel%4: print("over-oversampling only for channel 0 of a board!")
@@ -545,7 +557,8 @@ class Haasoscope():
         if self.dousb:
             frame=[]
             frame.append(137)
-            self.ser.write(frame)
+            with self._lock:
+                self.ser.write(frame)
             self.dousb=False
             print(("dousb set back to",self.dousb))
 
@@ -554,7 +567,8 @@ class Haasoscope():
         frame=[]
         frame.append(124)
         frame.append(ds)
-        self.ser.write(frame)
+        with self._lock:
+            self.ser.write(frame)
 
 
     def adjustvertical(self,up,amount=10):
@@ -889,17 +903,18 @@ class Haasoscope():
                 frame=[]
                 frame.append(100)
                 frame.append(10+bn)
-                self.ser.write(frame)
-                for usb in np.arange(len(self.usbser)):
-                    if not usb in foundusbs: # it's not already known that this usb connection is assigned to a board
-                        rslt = self.usbser[usb].read(HAAS_NUM_BYTES) # try to get data from the board
-                        if len(rslt)==HAAS_NUM_BYTES:
-                            #print "   got the right nbytes for board",bn,"from usb",usb
-                            self.usbsermap[bn]=usb
-                            foundusbs.append(usb) # remember that we already have figured out which board this usb connection is for, so we don't bother trying again for another board
-                            break # already found which board this usb connection is used for, so bail out
-                        #else: print "   got the wrong nbytes for board",bn,"from usb",usb
-                    #else: print "   already know what usb",usb,"is for"
+                with self._lock:
+                    self.ser.write(frame)
+                    for usb in np.arange(len(self.usbser)):
+                        if not usb in foundusbs: # it's not already known that this usb connection is assigned to a board
+                            rslt = self.usbser[usb].read(HAAS_NUM_BYTES) # try to get data from the board
+                            if len(rslt)==HAAS_NUM_BYTES:
+                                #print "   got the right nbytes for board",bn,"from usb",usb
+                                self.usbsermap[bn]=usb
+                                foundusbs.append(usb) # remember that we already have figured out which board this usb connection is for, so we don't bother trying again for another board
+                                break # already found which board this usb connection is used for, so bail out
+                            #else: print "   got the wrong nbytes for board",bn,"from usb",usb
+                        #else: print "   already know what usb",usb,"is for"
             for usb in np.arange(HAAS_NUM_BOARD): self.usbser[usb].timeout=self.sertimeout # put back the timeout on the connections
         print(("usbsermap is",self.usbsermap))
         return True
@@ -926,6 +941,7 @@ class Haasoscope():
             db2=False #True
             if db2: print((byte_array[1:11]))
             self.ydata=np.reshape(byte_array,(HAAS_NUM_CHAN_PER_BOARD,HAAS_NUM_SAMPLES))
+            self.hos.TryOversample(board, self.ydata)
             # if self.dooversample[HAAS_NUM_CHAN_PER_BOARD*(HAAS_NUM_BOARD-board-1)]: self.oversample(0,2)
             # if self.dooversample[HAAS_NUM_CHAN_PER_BOARD*(HAAS_NUM_BOARD-board-1)+1]: self.oversample(1,3)
             # if self.dooversample[HAAS_NUM_CHAN_PER_BOARD*(HAAS_NUM_BOARD-board-1)]==9: self.overoversample(0,1)
@@ -958,50 +974,6 @@ class Haasoscope():
             else:
                 if not self.db and self.rollingtrigger: print(("getdata asked for",HAAS_NUM_BYTES,"logic bytes and got",len(rslt),"from board",board))
                 if len(rslt)>0 and self.rollingtrigger: print((byte_array[0:10]))
-
-    def oversample(self,c1,c2):
-        tempc1=self.ydata[c1]
-        tempc2=self.ydata[c2]
-        adjustmeanandrms=True
-        if adjustmeanandrms:
-            mean_c1 = np.mean(tempc1)
-            rms_c1 = np.sqrt(np.mean((tempc1-mean_c1)**2))
-            mean_c2 = np.mean(tempc2)
-            rms_c2 = np.sqrt(np.mean((tempc2-mean_c2)**2))
-            meanmean=(mean_c1+mean_c2)/2.
-            meanrms=(rms_c1+rms_c2)/2.
-            tempc1=meanrms*(tempc1-mean_c1)/rms_c1 + meanmean
-            tempc2=meanrms*(tempc2-mean_c2)/rms_c2 + meanmean
-            #print mean_c1, mean_c2, rms_c1, rms_c2
-        ns=HAAS_NUM_SAMPLES
-        mergedsamps=np.empty(ns*2)
-        mergedsamps[0:ns*2:2]=tempc1 # a little tricky which is 0 and which is 1 (i.e. which is sampled first!)
-        mergedsamps[1:ns*2:2]=tempc2
-        self.ydata[c1]=mergedsamps[0:ns]
-        self.ydata[c2]=mergedsamps[ns:ns*2]
-
-    def overoversample(self,c1,c2):
-        tempc1=np.concatenate([self.ydata[c1],self.ydata[c1+2]])
-        tempc2=np.concatenate([self.ydata[c2],self.ydata[c2+2]])
-        adjustmeanandrms=True
-        if adjustmeanandrms:
-            mean_c1 = np.mean(tempc1)
-            rms_c1 = np.sqrt(np.mean((tempc1-mean_c1)**2))
-            mean_c2 = np.mean(tempc2)
-            rms_c2 = np.sqrt(np.mean((tempc2-mean_c2)**2))
-            meanmean=(mean_c1+mean_c2)/2.
-            meanrms=(rms_c1+rms_c2)/2.
-            tempc1=meanrms*(tempc1-mean_c1)/rms_c1 + meanmean
-            tempc2=meanrms*(tempc2-mean_c2)/rms_c2 + meanmean
-            #print mean_c1, mean_c2, rms_c1, rms_c2
-        ns=2*HAAS_NUM_SAMPLES
-        mergedsamps=np.empty(ns*2)
-        mergedsamps[0:ns*2:2]=tempc1 # a little tricky which is 0 and which is 1 (i.e. which is sampled first!)
-        mergedsamps[1:ns*2:2]=tempc2
-        self.ydata[c1]=mergedsamps[0:ns/2]
-        self.ydata[c2]=mergedsamps[ns/2:ns]
-        self.ydata[c1+2]=mergedsamps[ns:3*ns/2]
-        self.ydata[c2+2]=mergedsamps[3*ns/2:ns*2]
 
     def getmax10adc(self,bn):
         chansthisboard = [(x,y) for (x,y) in HAAS_MAX10ADCCHANS if x==bn]
@@ -1118,7 +1090,7 @@ class Haasoscope():
                 if not self.autorearm:
                     self.rearm()
                 self.getchannels()
-            print("from thread --->")
+            time.sleep(0.01)
 
 
 
