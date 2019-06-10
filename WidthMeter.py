@@ -23,18 +23,19 @@ class WidthMeter():
                         # print("x",x-old_x)
                         if not first:
                             period.append(x-old_x)
-                        first=False
-                        old_x=x
+                        else:
+                            first=False
+                        old_x = x
                 else:
                     cnt = 0
-            if not b:
+            else: # not b
                 if tempc1[x] < mean_c1:
                     cnt = cnt+1
                     if (cnt > 10):
                         cnt = 0
                         b = True
                 else:
-                        cnt = 0
+                    cnt = 0
         mperiod = np.mean(period)
         F=1000*1000/(mperiod/(HAAS_CLKRATE/pow(2, downsample)))
         # print("F=",F)
